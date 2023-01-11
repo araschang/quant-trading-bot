@@ -1,0 +1,17 @@
+[Binance]
+api_key = 
+api_secret = 
+
+[OKX]
+api_key = 
+api_secret = 
+pass_phrase = 
+
+[Redis]
+host = 
+
+[Discord]
+webhook_url = 
+
+[CoinMarketCap]
+api_key = 
