@@ -13,6 +13,7 @@ class Indicator1(object):
         self.redis = RedisConnector().getConn()
         self.queue = Queue(connection=self.redis)
     
+    @classmethod
     def run(self):
         discord = DiscordService()
         check = 0

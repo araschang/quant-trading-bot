@@ -12,3 +12,8 @@ Application/Api/Controller/__pycache__/
 Application/Api/Entity/__pycache__/
 Application/Api/Service/__pycache__/
 Application/Api/Indicators/__pycache__/
+memo
+quant.pem
+ssh.sh
+Application/Api/Service/LivePrice/binance_btc.csv
+Application/Api/Service/LivePrice/CryptoEX.csv

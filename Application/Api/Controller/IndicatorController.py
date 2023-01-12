@@ -28,8 +28,8 @@ class IndicatorController(Resource):
             return ResponseCode.BAD_REQUEST
         
         if data['indicator'] == 'ex' and data['action'] == 'start':
-            queue.enqueue(CryptoEX.run, CryptoEX, job_timeout=-1)
+            queue.enqueue(CryptoEX.run, job_timeout=-1)
             return ResponseCode.SUCCESS
         elif data['indicator'] == '1' and data['action'] == 'start':
-            queue.enqueue(Indicator1.run, Indicator1, job_timeout=-1)
+            queue.enqueue(Indicator1.run, job_timeout=-1)
             return ResponseCode.SUCCESS

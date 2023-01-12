@@ -6,28 +6,31 @@ import json
 class WebsocketService(object):
     def __init__(self):
         pass
-
-    def binanceWebsocket(currency):
+    
+    @classmethod
+    def binanceWebsocket(self, currency):
         websocket.enableTrace(False)
         socket = f'wss://stream.binancefuture.com/ws/{currency}@kline_1m'
         ws = websocket.WebSocketApp(socket,
-                                    on_message=WebsocketService.binance_on_message,
-                                    on_error=WebsocketService.on_error,
-                                    on_close=WebsocketService.on_close,
-                                    on_pong=WebsocketService.on_pong)
+                                    on_message=self.binance_on_message,
+                                    on_error=self.on_error,
+                                    on_close=self.on_close,
+                                    on_pong=self.on_pong)
         ws.run_forever(ping_interval=25, ping_timeout=10) # 25秒發一次ping，10秒沒收到pong就斷線，官方api文件說ping_interval設25秒可以避免斷線
     
-    def okxWebsocket():
+    @classmethod
+    def okxWebsocket(self):
         socket = 'wss://ws.okx.com:8443/ws/v5/public'
         wsapp = websocket.WebSocketApp(socket,
-                                    on_message=WebsocketService.okx_on_message,
-                                    on_error=WebsocketService.on_error,
-                                    on_close=WebsocketService.on_close,
-                                    on_open=WebsocketService.okx_on_open,
-                                    on_pong=WebsocketService.on_pong)
+                                    on_message=self.okx_on_message,
+                                    on_error=self.on_error,
+                                    on_close=self.on_close,
+                                    on_open=self.okx_on_open,
+                                    on_pong=self.on_pong)
         wsapp.run_forever(ping_interval=25, ping_timeout=10)
 
-    def binance_on_message(ws, message):
+    @classmethod
+    def binance_on_message(self, ws, message):
         try:
             json_result = json.loads(message)
             o = json_result['k']['o']
@@ -49,7 +52,8 @@ class WebsocketService(object):
         except Exception as e:
             print(e)
     
-    def okx_on_message(wsapp, message):
+    @classmethod
+    def okx_on_message(self, wsapp, message):
         try:
             json_result = json.loads(message)
             result = json_result['data'][0][0:6]
@@ -67,7 +71,8 @@ class WebsocketService(object):
         except Exception as e:
             print(e)
     
-    def okx_on_open(wsapp):
+    @classmethod
+    def okx_on_open(self, wsapp):
         wsapp.send(json.dumps({
             "op": "subscribe",
             "args": [{
@@ -76,11 +81,14 @@ class WebsocketService(object):
             }]
         }))
 
-    def on_error(ws, error):
+    @classmethod
+    def on_error(self, ws, error):
         print(error)
 
-    def on_close(close_msg):
+    @classmethod
+    def on_close(self, close_msg):
         print("### closed ###" + close_msg)
 
-    def on_pong(wsapp, message):
+    @classmethod
+    def on_pong(self, wsapp, message):
         print("Got a pong! No need to respond")

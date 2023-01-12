@@ -12,6 +12,7 @@ class CryptoEX(object):
         self.redis = RedisConnector().getConn()
         self.queue = Queue(connection=self.redis)
     
+    @classmethod
     def run(self):
         while True:
             df = self.getBinanceData()
@@ -24,7 +25,8 @@ class CryptoEX(object):
             print(index)
             time.sleep(60)
     
-    def getBinanceData():
+    @classmethod
+    def getBinanceData(self):
         data = requests.get('https://www.binance.com/exchange-api/v2/public/asset-service/product/get-products')
         data = json.loads(data.text)
         df = pd.DataFrame(data['data'])[['s', 'b', 'q', 'o', 'h', 'l', 'c', 'v', 'cs']]
@@ -39,7 +41,8 @@ class CryptoEX(object):
         time.sleep(1)
         return df
     
-    def calculateCryptoEX(df):
+    @classmethod
+    def calculateCryptoEX(self, df):
         coinmarketcap = df['marketcap'].sum()
         df['marketcap_ratio'] = df['marketcap'] / coinmarketcap
         df['index'] = df['close'] * df['marketcap_ratio']
