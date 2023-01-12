@@ -1,5 +1,6 @@
 import ccxt
 from redis import Redis, ConnectionPool
+from pymongo import MongoClient
 from Base.ConfigReader import Config
 
 class Connector(object):
@@ -17,6 +18,22 @@ class RedisConnector(Connector):
 
     def getConn(self):
         return self._redisConnection
+
+
+class MongoConnector(Connector):
+    def __init__(self):
+        super().__init__()
+        config = self.config['MongoDB']
+        account = config["Account"]
+        password = config["Password"]
+        mongoUrl = 'mongodb+srv://' + account + ':' + password + '@tradingplatform.iid8bdl.mongodb.net/?retryWrites=true&w=majority'
+        self._mongoConnection = MongoClient(mongoUrl)
+
+    def getExConn(self):
+        return self._mongoConnection['Indicator']['EX']
+    
+    def getIndicator1Conn(self):
+        return self._mongoConnection['Indicator']['1']
 
 
 class BinanceConnector(Connector):

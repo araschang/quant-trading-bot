@@ -4,11 +4,18 @@ import pandas as pd
 from rq import Queue
 import time
 from datetime import datetime
-from Base.Connector import RedisConnector
+from Base.Connector import RedisConnector, MongoConnector
+from Base.ConfigReader import Config
+from Base.ResponseCode import ResponseCode
 
-
-class CryptoEX(object):
+class Connector(object):
     def __init__(self):
+        self.config = Config()
+
+
+class CryptoEX(Connector):
+    def __init__(self):
+        super().__init__()
         self.redis = RedisConnector().getConn()
         self.queue = Queue(connection=self.redis)
     
@@ -17,6 +24,7 @@ class CryptoEX(object):
         while True:
             df = self.getBinanceData()
             index = self.calculateCryptoEX(df)
+            self.send2Mongo(index)
             data = [[datetime.now().strftime('%Y-%m-%d %H:%M:%S'), index]]
             data = pd.DataFrame(data, columns=['time', 'index'] , index=[0])
             csv = pd.read_csv('./Application/Api/Service/LivePrice/CryptoEX.csv')
@@ -48,6 +56,18 @@ class CryptoEX(object):
         df['index'] = df['close'] * df['marketcap_ratio']
         index = round(df['index'].sum(), 2)
         return index
+    
+    @classmethod
+    def send2Mongo(self, index):
+        mongo = MongoConnector().getExConn()
+        data = {
+            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'index': index
+        }
+        mongo.insert_one(data)
+        return ResponseCode.SUCCESS
+
+
 
 if __name__ == '__main__':
     cryptoex = CryptoEX()

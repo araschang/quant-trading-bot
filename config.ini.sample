@@ -15,3 +15,7 @@ webhook_url =
 
 [CoinMarketCap]
 api_key = 
+
+[MongoDB]
+Account = 
+Password = 
