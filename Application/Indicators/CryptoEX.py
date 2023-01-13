@@ -1,4 +1,7 @@
 import requests
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 import json
 import pandas as pd
 from rq import Queue
@@ -35,7 +38,12 @@ class CryptoEX(Connector):
     
     @classmethod
     def getBinanceData(self):
-        data = requests.get('https://www.binance.com/exchange-api/v2/public/asset-service/product/get-products')
+        session = requests.Session()
+        retry = Retry(connect=3, backoff_factor=1)
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        data = session.get('https://www.binance.com/exchange-api/v2/public/asset-service/product/get-products', timeout=3)
         data = json.loads(data.text)
         df = pd.DataFrame(data['data'])[['s', 'b', 'q', 'o', 'h', 'l', 'c', 'v', 'cs']]
         df = df[df['q'].str.contains('USDT')]
