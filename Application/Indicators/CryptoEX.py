@@ -28,7 +28,7 @@ class CryptoEX(Connector):
             df = self.getBinanceData()
             index = self.calculateCryptoEX(df)
             self.send2Mongo(index)
-            data = [[datetime.now().strftime('%Y-%m-%d %H:%M:%S'), index]]
+            data = [[round(datetime.now().timestamp()), index]]
             data = pd.DataFrame(data, columns=['time', 'index'] , index=[0])
             csv = pd.read_csv('./Application/Api/Service/LivePrice/CryptoEX.csv')
             csv = pd.concat([csv, data], axis=0, ignore_index=True)
