@@ -69,7 +69,7 @@ class CryptoEX(Connector):
     def send2Mongo(self, index):
         mongo = MongoConnector().getExConn()
         data = {
-            'time': round(datetime.now().timestamp),
+            'time': round(datetime.now().timestamp()),
             'index': index
         }
         mongo.insert_one(data)
