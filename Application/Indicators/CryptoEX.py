@@ -6,7 +6,8 @@ import json
 import pandas as pd
 from rq import Queue
 import time
-from datetime import datetime
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 from Base.Connector import RedisConnector, MongoConnector
 from Base.ConfigReader import Config
 from Base.ResponseCode import ResponseCode
@@ -28,7 +29,7 @@ class CryptoEX(Connector):
             df = self.getBinanceData()
             index = self.calculateCryptoEX(df)
             self.send2Mongo(index)
-            data = [[round(datetime.now().timestamp()), index]]
+            data = [[round((datetime.now()+timedelta(hours=8)).timestamp()), index]]
             data = pd.DataFrame(data, columns=['time', 'index'] , index=[0])
             csv = pd.read_csv('./Application/Api/Service/LivePrice/CryptoEX.csv')
             csv = pd.concat([csv, data], axis=0, ignore_index=True)
@@ -69,12 +70,33 @@ class CryptoEX(Connector):
     def send2Mongo(self, index):
         mongo = MongoConnector().getExConn()
         data = {
-            'time': round(datetime.now().timestamp()),
+            'time': round((datetime.now()+timedelta(hours=8)).timestamp()),
             'index': index
         }
         mongo.insert_one(data)
         return ResponseCode.SUCCESS
 
+    @classmethod
+    def drawCryptoEX(self, timeframe):
+        '''
+        Valid timeframe: 1d, 1w, 1mon 
+        '''
+        mongo = MongoConnector().getExConn()
+        if timeframe == '1d':
+            time = round((datetime.now() - timedelta(days=1)).timestamp())
+        elif timeframe == '1w':
+            time = round((datetime.now() - timedelta(days=7)).timestamp())
+        elif timeframe == '1mon':
+            time = round((datetime.now() - timedelta(days=30)).timestamp())
+        data = mongo.find({'time': {'$gt':time}})
+        data = pd.DataFrame(data)
+        data = data.sort_values(by=['time'], ascending=True, ignore_index=True)
+        data['time'] = pd.to_datetime(data['time'], unit='s')
+        data['index'] = data['index'].astype(float)
+        data.drop(['_id'], axis=1, inplace=True)
+        data.plot(x='time', y='index', kind='line')
+        plt.show()
+        return ResponseCode.SUCCESS
 
 
 if __name__ == '__main__':

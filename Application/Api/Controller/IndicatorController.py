@@ -30,6 +30,9 @@ class IndicatorController(Resource):
         if data['indicator'] == 'ex' and data['action'] == 'start':
             queue.enqueue(CryptoEX.run, job_timeout=-1)
             return ResponseCode.SUCCESS
+        elif data['indicator'] == 'ex' and data['action'] == 'draw':
+            queue.enqueue(CryptoEX.drawCryptoEX, data['timeframe'])
+            return ResponseCode.SUCCESS
         elif data['indicator'] == '1' and data['action'] == 'start':
             queue.enqueue(Indicator1.run, job_timeout=-1)
             return ResponseCode.SUCCESS
