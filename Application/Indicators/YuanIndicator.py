@@ -54,7 +54,7 @@ class YuanIndicator(Connector):
         '''
         if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
-            if slope > 0:
+            if slope < 0:
                 self.discord.sendMessage(f'**{self.symbol}** POSSIBLE BUY SIGNAL!')
             else:
                 self.discord.sendMessage(f'**{self.symbol}** POSSIBLE SELL SIGNAL!')
