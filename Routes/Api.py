@@ -11,7 +11,7 @@ app = Flask(__name__)
 api = Api(app)
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 3})
 config = Config()
-stable_check_webhook = config['Discord']['stable_check_webhook']
+stable_check_webhook = config['Discord']['stable_check']
 
 def job_bitcoin_trade():
     indicator = YuanIndicator('BTC/USDT')
