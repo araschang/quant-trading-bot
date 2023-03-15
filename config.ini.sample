@@ -12,6 +12,7 @@ host =
 
 [Discord]
 webhook_url = 
+stable_check = 
 
 [CoinMarketCap]
 api_key = 
