@@ -51,7 +51,7 @@ class YuanIndicator(Connector):
         Check signal
         Return a dataframe with signal
         '''
-        if ohlcv_df['volume'].iloc[-1] >= mean_volume * 1:
+        if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
             if slope > 0:
                 self.discord.sendMessage('POSSIBLE BUY SIGNAL!')
