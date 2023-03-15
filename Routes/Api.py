@@ -18,7 +18,7 @@ def job_bitcoin_trade():
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "BITCOIN TRADE" DONE')
+    print('JOB "BIT TRADE" DONE')
 
 def job_eth_trade():
     indicator = YuanIndicator('ETH/USDT')
