@@ -14,6 +14,7 @@ def job_trade():
     ohlcv = indicator.getOHLCV('BTC/USDT', '3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     indicator.checkSignal(mean_volume, ohlcv)
+    print('JOB "TRADE" DONE')
 
 
 api.add_resource(
@@ -26,4 +27,5 @@ api.add_resource(
     '/api/indicator',
 )
 
-
+scheduler.add_job(job_trade, 'interval', seconds=30)
+scheduler.start()
