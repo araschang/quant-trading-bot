@@ -7,14 +7,21 @@ from Application.Indicators.YuanIndicator import YuanIndicator
 
 app = Flask(__name__)
 api = Api(app)
-scheduler = BackgroundScheduler(job_defaults={'max_instances': 1})
+scheduler = BackgroundScheduler(job_defaults={'max_instances': 2})
 
-def job_trade():
-    indicator = YuanIndicator()
-    ohlcv = indicator.getOHLCV('BTC/USDT', '3m')
+def job_bitcoin_trade():
+    indicator = YuanIndicator('BTC/USDT')
+    ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "TRADE" DONE')
+    print('JOB "BITCOIN TRADE" DONE')
+
+def job_eth_trade():
+    indicator = YuanIndicator('ETH/USDT')
+    ohlcv = indicator.getOHLCV('3m')
+    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
+    indicator.checkSignal(mean_volume, ohlcv)
+    print('JOB "ETH TRADE" DONE')
 
 
 api.add_resource(
@@ -27,5 +34,6 @@ api.add_resource(
     '/api/indicator',
 )
 
-scheduler.add_job(job_trade, 'interval', seconds=30)
+scheduler.add_job(job_bitcoin_trade, 'interval', seconds=30)
+scheduler.add_job(job_eth_trade, 'interval', seconds=30)
 scheduler.start()

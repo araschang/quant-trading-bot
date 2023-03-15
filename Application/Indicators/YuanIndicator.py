@@ -11,8 +11,9 @@ class Connector(object):
         self.config = Config()
 
 class YuanIndicator(Connector):
-    def __init__(self):
+    def __init__(self, symbol):
         super().__init__()
+        self.symbol = symbol
         self.discord = DiscordService()
         config = self.config['Binance']
         self.exchange = ccxt.binanceusdm({
@@ -24,12 +25,12 @@ class YuanIndicator(Connector):
             },
         })
     
-    def getOHLCV(self, symbol, timeframe):
+    def getOHLCV(self, timeframe):
         '''
         Get OHLCV data from exchange
         Return a dataframe with OHLCV data
         '''
-        ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe, limit=100)
+        ohlcv = self.exchange.fetch_ohlcv(self.symbol, timeframe, limit=100)
         df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
         df['time'] = pd.to_datetime(df['time'], unit='ms')
         return df
@@ -54,6 +55,6 @@ class YuanIndicator(Connector):
         if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
             if slope > 0:
-                self.discord.sendMessage('POSSIBLE BUY SIGNAL!')
+                self.discord.sendMessage(f'**{self.symbol}** POSSIBLE BUY SIGNAL!')
             else:
-                self.discord.sendMessage('POSSIBLE SELL SIGNAL!')
+                self.discord.sendMessage(f'**{self.symbol}** POSSIBLE SELL SIGNAL!')
