@@ -1,10 +1,20 @@
 from flask_restful import Api
 from flask import Flask
+from apscheduler.schedulers.background import BackgroundScheduler
 from Application.Api.Controller.WebsocketController import WebsocketController
 from Application.Api.Controller.IndicatorController import IndicatorController
+from Application.Indicators.YuanIndicator import YuanIndicator
 
 app = Flask(__name__)
 api = Api(app)
+scheduler = BackgroundScheduler(job_defaults={'max_instances': 1})
+
+def job_trade():
+    indicator = YuanIndicator()
+    ohlcv = indicator.getOHLCV('BTC/USDT', '3m')
+    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
+    indicator.checkSignal(mean_volume, ohlcv)
+
 
 api.add_resource(
     WebsocketController,

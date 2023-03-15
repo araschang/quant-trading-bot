@@ -1,6 +1,4 @@
 from discord import SyncWebhook
-# import sys
-# sys.path.append('./')
 from Base.ConfigReader import Config
 
 
@@ -22,3 +20,4 @@ class DiscordService(Connector):
 if __name__ == '__main__':
     discordService = DiscordService()
     discordService.sendMessage("Hello World!")
+    

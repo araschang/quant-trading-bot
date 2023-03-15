@@ -1,8 +1,6 @@
 from rq import Queue
 import pandas as pd
 import time
-import sys
-sys.path.append('./')
 from Base.Connector import RedisConnector
 from Application.Api.Service.StrategyService import StrategyService
 from Application.Api.Service.DiscordService import DiscordService
