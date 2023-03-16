@@ -8,9 +8,9 @@ class WebsocketService(object):
         pass
     
     @classmethod
-    def binanceWebsocket(self, currency):
+    def binanceWebsocket(self, currency, timeframe):
         websocket.enableTrace(False)
-        socket = f'wss://stream.binancefuture.com/ws/{currency}@kline_1m'
+        socket = f'wss://stream.binancefuture.com/ws/{currency}@kline_{timeframe}'
         ws = websocket.WebSocketApp(socket,
                                     on_message=self.binance_on_message,
                                     on_error=self.on_error,

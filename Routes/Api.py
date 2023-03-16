@@ -18,7 +18,7 @@ def job_bitcoin_trade():
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "BIT TRADE" DONE')
+    print('JOB "BTC TRADE" DONE')
 
 def job_eth_trade():
     indicator = YuanIndicator('ETH/USDT')
@@ -26,27 +26,6 @@ def job_eth_trade():
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     indicator.checkSignal(mean_volume, ohlcv)
     print('JOB "ETH TRADE" DONE')
-
-def job_sol_trade():
-    indicator = YuanIndicator('SOL/USDT')
-    ohlcv = indicator.getOHLCV('3m')
-    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "SOL TRADE" DONE')
-
-def job_bnb_trade():
-    indicator = YuanIndicator('BNB/USDT')
-    ohlcv = indicator.getOHLCV('3m')
-    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "BNB TRADE" DONE')
-
-def job_xrp_trade():
-    indicator = YuanIndicator('XRP/USDT')
-    ohlcv = indicator.getOHLCV('3m')
-    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "XRP TRADE" DONE')
 
 def stable_check():
     webhook = SyncWebhook.from_url(stable_check_webhook)
@@ -64,8 +43,5 @@ api.add_resource(
 
 scheduler.add_job(job_bitcoin_trade, 'interval', seconds=30)
 scheduler.add_job(job_eth_trade, 'interval', seconds=30)
-scheduler.add_job(job_sol_trade, 'interval', seconds=30)
-scheduler.add_job(job_bnb_trade, 'interval', seconds=30)
-scheduler.add_job(job_xrp_trade, 'interval', seconds=30)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
