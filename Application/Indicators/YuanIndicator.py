@@ -58,12 +58,12 @@ class YuanIndicator(Connector):
                 try:
                     check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 except:
-                    ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{self.symbol}.csv'))
+                    ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
 
                 if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
-                    self.discord.sendMessage(f'**{self.symbol}** BUY!')
+                    self.discord.sendMessage(f'**{symbol}** BUY!')
             else:
                 try:
                     check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
