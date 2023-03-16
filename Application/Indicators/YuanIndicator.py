@@ -64,6 +64,9 @@ class YuanIndicator(Connector):
                 if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     self.discord.sendMessage(f'**{symbol}** BUY!')
+                    return 'buy'
+                else:
+                    return ''
             else:
                 try:
                     check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
@@ -74,6 +77,78 @@ class YuanIndicator(Connector):
                 if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     self.discord.sendMessage(f'**{symbol}** SELL!')
+                    return 'sell'
+                else:
+                    return ''
+    
+    def openPosition(self, side, amount, leverage, now_price, stoplossMny, apikey, apisecret):
+        '''
+        Open position
+        Return a dataframe with open position
+        '''
+        if side != 'buy' and side != 'sell':
+            return
+        exchange = ccxt.binanceusdm({
+            'apiKey': apikey,
+            'secret': apisecret,
+            'enableRateLimit': True,
+            'option': {
+                'defaultMarket': 'future',
+            },
+        })
+        exchange.set_leverage(leverage, self.symbol)
+        exchange.create_market_order(self.symbol, side, amount)
+        if side == 'buy':
+            side = 'sell'
+        else:
+            side = 'buy'
+
+        if self.symbol == 'BTC/USDT':
+            round_digit = 1
+        elif self.symbol == 'ETH/USDT':
+            round_digit = 2
+        stop_loss_price = round(now_price - (stoplossMny / amount), round_digit)
+        exchange.create_market_order(self.symbol, side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
+    
+    def changeStopLoss(self, price, apikey, apisecret):
+        '''
+        Change stop loss
+        Return a dataframe with change stop loss
+        '''
+        exchange = ccxt.binanceusdm({
+            'apiKey': apikey,
+            'secret': apisecret,
+            'enableRateLimit': True,
+            'option': {
+                'defaultMarket': 'future',
+            },
+        })
+        orderId = exchange.fetch_open_orders(self.symbol)[0]['info']['orderId']
+        exchange.cancel_order(orderId, self.symbol)
+        exchange.create_market_order(self.symbol, 'sell', 1, params={'stopLossPrice': price, 'closePosition': True})
+    
+    def checkIfChangeStopLoss(self, apikey, apisecret):
+        pass
+
+    def closePosition(self, apikey, apisecret):
+        '''
+        Close position
+        Return a dataframe with close position
+        '''
+        exchange = ccxt.binanceusdm({
+            'apiKey': apikey,
+            'secret': apisecret,
+            'enableRateLimit': True,
+            'option': {
+                'defaultMarket': 'future',
+            },
+        })
+        amount = float(exchange.fetch_positions([str(self.symbol)])[0]['info']['positionAmt'])
+        if amount > 0:
+            side = 'sell'
+        else:
+            side = 'buy'
+        exchange.create_market_order(self.symbol, side, amount)
 
 if __name__ == '__main__':
     print(os.path.join(os.path.dirname(__file__), 'YuanBTC.csv'))
