@@ -41,7 +41,7 @@ api.add_resource(
     '/api/indicator',
 )
 
-scheduler.add_job(job_bitcoin_trade, 'interval', seconds=30)
-scheduler.add_job(job_eth_trade, 'interval', seconds=30)
+scheduler.add_job(job_bitcoin_trade, 'interval', seconds=5)
+scheduler.add_job(job_eth_trade, 'interval', seconds=5)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()

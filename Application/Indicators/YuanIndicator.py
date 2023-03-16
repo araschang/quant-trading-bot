@@ -1,9 +1,7 @@
 import pandas as pd
-import time
 import ccxt
-from Base.Connector import RedisConnector
+import os
 from Base.ConfigReader import Config
-from Application.Api.Service.StrategyService import StrategyService
 from Application.Api.Service.DiscordService import DiscordService
 
 class Connector(object):
@@ -52,9 +50,30 @@ class YuanIndicator(Connector):
         Check signal
         Return a dataframe with signal
         '''
+        symbol = self.symbol.split('/')
+        symbol = symbol[0] + symbol[1]
         if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
             if slope < 0:
-                self.discord.sendMessage(f'**{self.symbol}** POSSIBLE BUY SIGNAL!')
+                try:
+                    check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
+                except:
+                    ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{self.symbol}.csv'))
+                    check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
+
+                if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
+                    ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
+                    self.discord.sendMessage(f'**{self.symbol}** BUY!')
             else:
-                self.discord.sendMessage(f'**{self.symbol}** POSSIBLE SELL SIGNAL!')
+                try:
+                    check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
+                except:
+                    ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
+                    check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
+
+                if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
+                    ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
+                    self.discord.sendMessage(f'**{symbol}** SELL!')
+
+if __name__ == '__main__':
+    print(os.path.join(os.path.dirname(__file__), 'YuanBTC.csv'))
