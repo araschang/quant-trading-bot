@@ -54,7 +54,8 @@ class YuanIndicator(Connector):
         symbol = symbol[0] + symbol[1]
         if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
-            if slope < 0:
+            trend = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv')).iloc[0, 0]
+            if slope < 0 and trend == 'up':
                 try:
                     check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 except:
@@ -67,7 +68,7 @@ class YuanIndicator(Connector):
                     return 'buy'
                 else:
                     return ''
-            else:
+            elif slope > 0 and trend == 'down':
                 try:
                     check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 except:
@@ -152,6 +153,22 @@ class YuanIndicator(Connector):
         else:
             side = 'buy'
         exchange.create_market_order(self.symbol, side, amount)
+    
+    def checkTrend(self):
+        '''
+        Check trend
+        Return a dataframe with trend
+        '''
+        ohlcv_df = self.getOHLCV('1h')
+        slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
+        if slope < 0:
+            trend = pd.DataFrame({'trend': ['down']})
+            trend.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))
+            return 'down'
+        else:
+            trend = pd.DataFrame({'trend': ['up']})
+            trend.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))
+            return 'up'
 
 if __name__ == '__main__':
     print(os.path.join(os.path.dirname(__file__), 'YuanBTC.csv'))
