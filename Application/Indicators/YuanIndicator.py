@@ -107,7 +107,10 @@ class YuanIndicator(Connector):
             round_digit = 1
         elif self.symbol == 'ETH/USDT':
             round_digit = 2
-        stop_loss_price = round(now_price - (stoplossMny / amount), round_digit)
+        if side == 'buy':
+            stop_loss_price = round(now_price - (stoplossMny / amount), round_digit)
+        else:
+            stop_loss_price = round(now_price + (stoplossMny / amount), round_digit)
         exchange.create_market_order(self.symbol, side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
     
     def changeStopLoss(self, price, apikey, apisecret):
