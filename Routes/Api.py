@@ -14,16 +14,18 @@ api = Api(app)
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 6})
 config = Config()
 stable_check_webhook = config['Discord']['stable_check']
+api_key = config['Binance']['api_key']
+api_secret = config['Binance']['api_secret']
 
 def job_bitcoin_signal():
-    indicator = YuanIndicator('BTC/USDT')
+    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret)
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     indicator.checkSignal(mean_volume, ohlcv)
     print('JOB "BTC DETECT" DONE')
 
 def job_eth_signal():
-    indicator = YuanIndicator('ETH/USDT')
+    indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret)
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     indicator.checkSignal(mean_volume, ohlcv)
