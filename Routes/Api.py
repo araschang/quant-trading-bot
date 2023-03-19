@@ -1,6 +1,8 @@
 from flask_restful import Api
 from flask import Flask
 from discord import SyncWebhook
+import pandas as pd
+import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from Base.ConfigReader import Config
 from Application.Api.Controller.WebsocketController import WebsocketController
@@ -12,42 +14,49 @@ api = Api(app)
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 6})
 config = Config()
 stable_check_webhook = config['Discord']['stable_check']
-aras_api_key = config['Binance_Aras']['api_key']
-aras_api_secret = config['Binance_Aras']['api_secret']
-yuan_api_key = config['Binance_Yuan']['api_key']
-yuan_api_secret = config['Binance_Yuan']['api_secret']
 
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT')
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    signal = indicator.checkSignal(mean_volume, ohlcv)
+    indicator.checkSignal(mean_volume, ohlcv)
     print('JOB "BTC DETECT" DONE')
 
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT')
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    signal = indicator.checkSignal(mean_volume, ohlcv)
+    indicator.checkSignal(mean_volume, ohlcv)
     print('JOB "ETH DETECT" DONE')
 
-def job_btc_trade(api_key, api_secret, amount, stoploss):
-    indicator = YuanIndicator('BTC/USDT')
-    ohlcv = indicator.getOHLCV('3m')
-    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    signal = indicator.checkSignal(mean_volume, ohlcv)
-    now_price = float(ohlcv['close'].iloc[-1])
-    indicator.openPosition(signal, amount, 100, now_price, stoploss, api_key, api_secret)
-    print('JOB "BTC DETECT" DONE')
+def job_trade():
+    member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
+    for i in range(len(member_df)):
+        api_key = member_df['API_KEY'].iloc[i]
+        api_secret = member_df['API_SECRET'].iloc[i]
+        exchange = member_df['EXCHANGE'].iloc[i]
+        symbol = member_df['SYMBOL'].iloc[i]
+        amount = float(member_df['AMOUNT'].iloc[i])
+        stoploss = float(member_df['STOPLOSS'].iloc[i])
 
-def job_eth_trade(api_key, api_secret, amount, stoploss):
-    indicator = YuanIndicator('ETH/USDT')
-    ohlcv = indicator.getOHLCV('3m')
-    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    signal = indicator.checkSignal(mean_volume, ohlcv)
-    now_price = float(ohlcv['close'].iloc[-1])
-    indicator.openPosition(signal, amount, 100, now_price, stoploss, api_key, api_secret)
-    print('JOB "ETH DETECT" DONE')
+        indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
+        ohlcv = indicator.getOHLCV('3m')
+        mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
+        signal = indicator.checkSignal(mean_volume, ohlcv)
+        now_price = float(ohlcv['close'].iloc[-1])
+        indicator.openPosition(signal, amount, 100, now_price, stoploss)
+    print('JOB "TRADE" DONE')
+
+def check_stoploss_order():
+    member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
+    for i in range(len(member_df)):
+        api_key = member_df['API_KEY'].iloc[i]
+        api_secret = member_df['API_SECRET'].iloc[i]
+        exchange = member_df['EXCHANGE'].iloc[i]
+        symbol = member_df['SYMBOL'].iloc[i]
+        indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
+        indicator.checkIfThereIsStopLoss()
+    print('JOB "CHECK STOPLOSS" DONE')
 
 def job_trend_detect():
     indicator = YuanIndicator('BTC/USDT')
@@ -70,8 +79,11 @@ api.add_resource(
 
 scheduler.add_job(job_bitcoin_signal, 'interval', seconds=5)
 scheduler.add_job(job_eth_signal, 'interval', seconds=5)
-# scheduler.add_job(job_eth_trade, 'interval', seconds=5, kwargs={'api_key': aras_api_key, 'api_secret': aras_api_secret, 'amount': 0.5, 'stoploss': 9})
-# scheduler.add_job(job_eth_trade, 'interval', seconds=5, kwargs={'api_key': yuan_api_key, 'api_secret': yuan_api_secret, 'amount': 1, 'stoploss': 18})
-scheduler.add_job(job_trend_detect, 'interval', seconds=5)
+scheduler.add_job(job_trade, 'interval', seconds=5)
+scheduler.add_job(check_stoploss_order, 'interval', seconds=5)
 scheduler.add_job(stable_check, 'interval', hours=8)
-scheduler.start()
+# scheduler.start()
+
+if __name__ == '__main__':
+    print(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
+

@@ -17,3 +17,4 @@ quant.pem
 ssh.sh
 Application/Api/Service/LivePrice/binance_btc.csv
 Application/Api/Service/LivePrice/CryptoEX.csv
+Application/Indicators/YuanMember.csv
