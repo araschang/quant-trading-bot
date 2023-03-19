@@ -82,7 +82,7 @@ scheduler.add_job(job_eth_signal, 'interval', seconds=5)
 scheduler.add_job(job_trade, 'interval', seconds=5)
 scheduler.add_job(check_stoploss_order, 'interval', seconds=5)
 scheduler.add_job(stable_check, 'interval', hours=8)
-# scheduler.start()
+scheduler.start()
 
 if __name__ == '__main__':
     print(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
