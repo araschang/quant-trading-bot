@@ -30,6 +30,7 @@ class YuanIndicator(Connector):
             self.exchange = ccxt.bybit({
             'apiKey': self.api_key,
             'secret': self.api_secret,
+            'enableRateLimit': True,
         })
 
     def getOHLCV(self, timeframe):
@@ -67,22 +68,22 @@ class YuanIndicator(Connector):
 
         if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
-            # trend = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv')).iloc[0, 0]
+            trend = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))['trend'].iloc[-1]
             try:
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
             except Exception as e:
                 ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
-            # if slope <= 0 and trend == 'up':
-            if slope <= 0:
+            if slope <= 0 and trend == 'up':
+            # if slope <= 0:
                 if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     self.discord.sendMessage(f'**{symbol}** BUY!')
                     return 'buy'
                 else:
                     return ''
-            # elif slope > 0 and trend == 'down':
-            else:
+            elif slope > 0 and trend == 'down':
+            # else:
                 if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     self.discord.sendMessage(f'**{symbol}** SELL!')
@@ -193,7 +194,7 @@ class YuanIndicator(Connector):
 
         elif self.exchange_name == 'bybit':
             position = self.exchange.fetch_positions(self.symbol)
-            if len(position) != 0: # if there is position,  need to be debugged!!!!!
+            if len(position) != 0:
                 if len(self.exchange.fetch_open_orders(self.symbol)) == 0: # if there is no stop loss
                     ohlcv = self.getOHLCV('3m')
                     if position[0]['info']['side'] == 'Buy': # if position is long
@@ -269,7 +270,7 @@ class YuanIndicator(Connector):
         Return a dataframe with trend
         '''
         ohlcv_df = self.getOHLCV('1h')
-        slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
+        slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-15]
         if slope < 0:
             trend = pd.DataFrame({'trend': ['down']})
             trend.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))
