@@ -19,8 +19,8 @@ class YuanIndicator(Connector):
         config = self.config['Binance']
         if exchange == 'binance':
             self.exchange = ccxt.binanceusdm({
-                'apiKey': config['api_key'],
-                'secret': config['api_secret'],
+                'apiKey': self.api_key,
+                'secret': self.api_secret,
                 'enableRateLimit': True,
                 'option': {
                     'defaultMarket': 'future',
@@ -40,6 +40,11 @@ class YuanIndicator(Connector):
         '''
         ohlcv = self.exchange.fetch_ohlcv(self.symbol, timeframe, limit=100)
         df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
+        df['open'] = df['open'].astype(float)
+        df['high'] = df['high'].astype(float)
+        df['low'] = df['low'].astype(float)
+        df['close'] = df['close'].astype(float)
+        df['volume'] = df['volume'].astype(float)
         df['time'] = pd.to_datetime(df['time'], unit='ms')
         return df
     
@@ -48,7 +53,7 @@ class YuanIndicator(Connector):
         Clean data to generate mean volume
         Return a dataframe with mean volume
         '''
-        volume = ohlcv_df['volume'].astype(float)
+        volume = ohlcv_df['volume']
         Q1 = volume.quantile(0.25)
         Q3 = volume.quantile(0.75)
         IQR = Q3 - Q1
@@ -98,8 +103,17 @@ class YuanIndicator(Connector):
         '''
         if side != 'buy' and side != 'sell':
             return
-        if len(self.exchange.fetch_positions(self.symbol)) > 0:
-            return
+        
+        if self.exchange_name == 'binance':
+            position = self.exchange.fetch_positions([str(self.symbol)])
+            has_position = float(position[0]['info']['positionAmt'])
+            if has_position != 0:
+                return
+        elif self.exchange_name == 'bybit':
+            position = self.exchange.fetch_positions(self.symbol)
+            if len(position) > 0:
+                return
+            
         self.exchange.create_market_order(self.symbol, side, amount)
 
         if self.exchange_name == 'binance':
@@ -112,7 +126,7 @@ class YuanIndicator(Connector):
                 round_digit = 1
             elif self.symbol == 'ETHUSDT':
                 round_digit = 2
-        
+
         # stop_loss_price = round(now_price - ((amount * now_price / leverage) * 0.8 / amount), round_digit) 是否改用？
         if side == 'buy':
             stop_loss_side = 'sell'
@@ -267,9 +281,10 @@ class YuanIndicator(Connector):
         Check trend
         Return a dataframe with trend
         '''
-        ohlcv_df = self.getOHLCV('1h')
-        slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-15]
-        if slope < 0:
+        ohlcv_df = self.getOHLCV('4h')
+        ohlcv_df['short_ma'] = ohlcv_df['close'].ewm(com=20, min_periods=20).mean()
+        ohlcv_df['long_ma'] = ohlcv_df['close'].ewm(com=40, min_periods=40).mean()
+        if ohlcv_df['short_ma'].iloc[-1] < ohlcv_df['long_ma'].iloc[-1]:
             trend = pd.DataFrame({'trend': ['down']})
             trend.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))
             return 'down'
