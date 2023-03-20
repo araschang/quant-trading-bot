@@ -98,10 +98,8 @@ class YuanIndicator(Connector):
         '''
         if side != 'buy' and side != 'sell':
             return
-        try: # bybit will raise error if leverage is the same
-            self.exchange.set_leverage(leverage, self.symbol)
-        except:
-            pass
+        if len(self.exchange.fetch_positions(self.symbol)) > 0:
+            return
         self.exchange.create_market_order(self.symbol, side, amount)
 
         if self.exchange_name == 'binance':
