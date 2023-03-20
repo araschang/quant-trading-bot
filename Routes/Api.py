@@ -4,6 +4,7 @@ from discord import SyncWebhook
 import pandas as pd
 import os
 import datetime
+import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from Base.ConfigReader import Config
 from Application.Api.Controller.WebsocketController import WebsocketController
@@ -29,7 +30,7 @@ def job_eth_signal():
     indicator = YuanIndicator('ETHUSDT', 'bybit', api_key, api_secret)
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    indicator.checkSignal(mean_volume, ohlcv)
+    signal = indicator.checkSignal(mean_volume, ohlcv)
     print('JOB "ETH DETECT" DONE')
 
 def job_trade():
@@ -48,6 +49,8 @@ def job_trade():
         signal = indicator.checkSignal(mean_volume, ohlcv)
         now_price = float(ohlcv['close'].iloc[-1])
         indicator.openPosition(signal, amount, 100, now_price, stoploss)
+        time.sleep(1)
+
     print('JOB "TRADE" DONE')
 
 def check_stoploss_order():
@@ -94,9 +97,9 @@ api.add_resource(
 scheduler.add_job(job_bitcoin_signal, 'interval', seconds=5)
 scheduler.add_job(job_eth_signal, 'interval', seconds=5)
 scheduler.add_job(job_trade, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2))
-scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
-scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
-scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
+scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
+scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
+scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
 
