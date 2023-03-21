@@ -71,7 +71,8 @@ def check_stoploss_order():
         exchange = member_df['EXCHANGE'].iloc[i]
         symbol = member_df['SYMBOL'].iloc[i]
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
-        indicator.checkIfThereIsStopLoss()
+        now_price = float(indicator.getOHLCV('3m')['close'].iloc[-1])
+        indicator.checkIfThereIsStopLoss(now_price)
     print('JOB "CHECK STOPLOSS" DONE')
 
 def job_trend_detect():
