@@ -45,8 +45,8 @@ def job_trade():
         api_secret = member_df['API_SECRET'].iloc[i]
         exchange = member_df['EXCHANGE'].iloc[i]
         symbol = member_df['SYMBOL'].iloc[i]
-        amount = float(member_df['AMOUNT'].iloc[i])
-        stoploss = float(member_df['STOPLOSS'].iloc[i])
+        assetPercent = float(member_df['ASSET_PERCENT'].iloc[i])
+        stoplossPercent = float(member_df['STOPLOSS_PERCENT'].iloc[i])
 
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
 
@@ -60,7 +60,7 @@ def job_trade():
             signal = btc_signal
         elif symbol[:3] == 'ETH':
             signal = eth_signal
-        indicator.openPosition(signal, amount, 100, now_price, stoploss)
+        indicator.openPosition(signal, assetPercent, 100, now_price, stoplossPercent)
     print('JOB "TRADE" DONE')
 
 def check_stoploss_order():
