@@ -180,11 +180,11 @@ class YuanIndicator(Connector):
     def checkIfThereIsStopLoss(self):
         if self.exchange_name == 'binance':
             position = self.exchange.fetch_positions([str(self.symbol)])
-            has_position = position[0]['info']['positionAmt']
-            if float(has_position) != 0: # if there is position
+            has_position = float(position[0]['info']['positionAmt'])
+            if has_position != 0: # if there is position
                 if len(self.exchange.fetch_open_orders(self.symbol)) == 0: # if there is no stop loss
                     ohlcv = self.getOHLCV('3m')
-                    if position[0]['info']['positionAmt'] > 0: # if position is long
+                    if has_position > 0: # if position is long
                         low_price_now = float(ohlcv['low'].iloc[-1])
                         low_price_3min_ago = float(ohlcv['low'].iloc[-2])
                         if low_price_now < low_price_3min_ago:

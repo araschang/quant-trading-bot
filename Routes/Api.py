@@ -4,7 +4,6 @@ from discord import SyncWebhook
 import pandas as pd
 import os
 import datetime
-import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from Base.ConfigReader import Config
 from Application.Api.Controller.WebsocketController import WebsocketController
@@ -54,7 +53,7 @@ def job_trade():
         if exchange == 'binance':
             symbol = symbol.split('/')
             symbol = symbol[0] + symbol[1]
-            
+
         ohlcv = pd.read_csv(symbol + '_now.csv')
         now_price = float(ohlcv['close'].iloc[-1])
         if symbol[:3] == 'BTC':
