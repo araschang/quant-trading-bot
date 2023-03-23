@@ -125,8 +125,12 @@ class YuanIndicator(Connector):
                 round_digit = 2
         
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
-        amount = round(wallet_balance * assetPercent / now_price, round_digit)
+        amount = round(wallet_balance * assetPercent / now_price, 3)
         self.exchange.create_market_order(self.symbol, side, amount)
+        if self.exchange_name == 'binance':
+            now_price = float(self.exchange.fetch_positions([self.symbol])[0]['info']['entryPrice'])
+        elif self.exchange_name == 'bybit':
+            now_price = float(self.exchange.fetch_positions(self.symbol)[0]['info']['entry_price'])
         self.insertTransationData(side, amount, now_price, 0)
 
         if side == 'buy':

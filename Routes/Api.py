@@ -62,6 +62,7 @@ def job_trade():
             signal = eth_signal
         indicator.openPosition(signal, assetPercent, 100, now_price, stoplossPercent)
         indicator.checkIfThereIsStopLoss(now_price)
+    print('JOB "CHECK STOPLOSS" DONE')
     print('JOB "TRADE" DONE')
 
 def check_stoploss_order():
