@@ -19,7 +19,7 @@ api_key = config['Binance']['api_key']
 api_secret = config['Binance']['api_secret']
 
 def job_bitcoin_signal():
-    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret)
+    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
     ohlcv = indicator.getOHLCV('3m')
     ohlcv.to_csv('BTCUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
@@ -28,7 +28,7 @@ def job_bitcoin_signal():
     return signal
 
 def job_eth_signal():
-    indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret)
+    indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
     ohlcv = indicator.getOHLCV('3m')
     ohlcv.to_csv('ETHUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
@@ -48,7 +48,7 @@ def job_trade():
         assetPercent = float(member_df['ASSET_PERCENT'].iloc[i])
         stoplossPercent = float(member_df['STOPLOSS_PERCENT'].iloc[i])
 
-        indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
+        indicator = YuanIndicator(symbol, exchange, api_key, api_secret, 'Yuan')
 
         if exchange == 'binance':
             symbol = symbol.split('/')
@@ -74,7 +74,7 @@ def job_trade():
         assetPercent = float(member_df['ASSET_PERCENT'].iloc[i])
         stoplossPercent = float(member_df['STOPLOSS_PERCENT'].iloc[i])
 
-        indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
+        indicator = YuanIndicator(symbol, exchange, api_key, api_secret, 'YuanCopyTrade')
 
         if exchange == 'binance':
             symbol = symbol.split('/')
@@ -103,7 +103,7 @@ def check_stoploss_order():
     print('JOB "CHECK STOPLOSS" DONE')
 
 def job_trend_detect():
-    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret)
+    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
     indicator.checkTrend()
     print('JOB "TREND DETECT" DONE')
 
