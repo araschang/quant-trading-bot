@@ -65,6 +65,31 @@ def job_trade():
     print('JOB "CHECK STOPLOSS" DONE')
     print('JOB "TRADE" DONE')
 
+    member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMemberForCopyTrade.csv')))
+    for i in range(len(member_df)):
+        api_key = member_df['API_KEY'].iloc[i]
+        api_secret = member_df['API_SECRET'].iloc[i]
+        exchange = member_df['EXCHANGE'].iloc[i]
+        symbol = member_df['SYMBOL'].iloc[i]
+        assetPercent = float(member_df['ASSET_PERCENT'].iloc[i])
+        stoplossPercent = float(member_df['STOPLOSS_PERCENT'].iloc[i])
+
+        indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
+
+        if exchange == 'binance':
+            symbol = symbol.split('/')
+            symbol = symbol[0] + symbol[1]
+        ohlcv = pd.read_csv(symbol + '_now.csv')
+        now_price = float(ohlcv['close'].iloc[-1])
+        if symbol[:3] == 'BTC':
+            signal = btc_signal
+        elif symbol[:3] == 'ETH':
+            signal = eth_signal
+        indicator.openPosition(signal, assetPercent, 100, now_price, stoplossPercent)
+        indicator.checkIfThereIsStopLossForCopyTrade(now_price)
+    print('JOB "COPY TRADE" DONE')
+
+
 def check_stoploss_order():
     member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
     for i in range(len(member_df)):
