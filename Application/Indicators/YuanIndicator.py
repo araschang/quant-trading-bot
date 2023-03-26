@@ -104,15 +104,9 @@ class YuanIndicator(Connector):
         if side != 'buy' and side != 'sell':
             return
         
-        if self.exchange_name == 'binance':
-            position = self.exchange.fetch_positions([str(self.symbol)])
-            has_position = float(position[0]['info']['positionAmt'])
-            if has_position != 0:
-                return
-        elif self.exchange_name == 'bybit':
-            position = self.exchange.fetch_positions(self.symbol)
-            if len(position) > 0:
-                return
+        transaction = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
+        if len(transaction[(transaction['API_KEY'] == self.api_key) & (transaction['SYMBOL'] == self.symbol) & (transaction['STRATEGY'] == self.strategy)]) > 0:
+            return
 
         if self.exchange_name == 'binance':
             if self.symbol == 'BTC/USDT':
@@ -188,85 +182,86 @@ class YuanIndicator(Connector):
             position = self.exchange.fetch_positions([str(self.symbol)])
             has_position = float(position[0]['info']['positionAmt'])
             df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-            if has_position > 0: # if long
-                position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol)].index)[0]
-                price = float(df['PRICE'].iloc[position_index])
-                change = round((now_price - price) / price, 4)
-                stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
-                if change >= self.STOPLOSS_STAGE[stoploss_stage]:
-                    if stoploss_stage == 0:
-                        stoploss_price = price + 0.0008 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 1
-                    elif stoploss_stage == 1:
-                        stoploss_price = price + 0.01 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 2
-                    elif stoploss_stage == 2:
-                        stoploss_price = price + 0.02 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 3
-                    elif stoploss_stage == 3:
-                        stoploss_price = price + 0.04 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 4
-                    df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
+            if self.strategy == 'Yuan':
+                if has_position > 0: # if long
+                    position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
+                    price = float(df['PRICE'].iloc[position_index])
+                    change = round((now_price - price) / price, 4)
+                    stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
+                    if change >= self.STOPLOSS_STAGE[stoploss_stage]:
+                        if stoploss_stage == 0:
+                            stoploss_price = price + 0.0008 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 1
+                        elif stoploss_stage == 1:
+                            stoploss_price = price + 0.01 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 2
+                        elif stoploss_stage == 2:
+                            stoploss_price = price + 0.02 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 3
+                        elif stoploss_stage == 3:
+                            stoploss_price = price + 0.04 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 4
+                        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
 
-            elif has_position < 0: # if short
-                position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol)].index)[0]
-                price = float(df['PRICE'].iloc[position_index])
-                change = round((price - now_price) / price, 4)
-                stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
-                if change >= self.STOPLOSS_STAGE[stoploss_stage]:
-                    if stoploss_stage == 0:
-                        stoploss_price = price - 0.0008 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 1
-                    elif stoploss_stage == 1:
-                        stoploss_price = price - 0.01 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 2
-                    elif stoploss_stage == 2:
-                        stoploss_price = price - 0.02 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 3
-                    elif stoploss_stage == 3:
-                        stoploss_price = price - 0.04 * price
-                        self.changeStopLoss(stoploss_price)
-                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key)].index)[0]
-                        df['STOPLOSS_STAGE'].iloc[df_index] = 4
-                    df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
-            else:
-                self.deleteTransationData()
-    
-    def checkIfThereIsStopLossForCopyTrade(self, now_price):
-        if self.exchange_name == 'binance':
-            position = self.exchange.fetch_positions([str(self.symbol)])
-            has_position = float(position[0]['info']['positionAmt'])
-            df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransactionForCopyTrade.csv'))
-            if has_position > 0:
-                position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol)].index)[0]
-                price = float(df['PRICE'].iloc[position_index])
-                change = round((now_price - price) / price, 4)
-                if change >= 0.01:
-                    self.closePosition()
+                elif has_position < 0: # if short
+                    position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
+                    price = float(df['PRICE'].iloc[position_index])
+                    change = round((price - now_price) / price, 4)
+                    stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
+                    if change >= self.STOPLOSS_STAGE[stoploss_stage]:
+                        if stoploss_stage == 0:
+                            stoploss_price = price - 0.0008 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 1
+                        elif stoploss_stage == 1:
+                            stoploss_price = price - 0.01 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 2
+                        elif stoploss_stage == 2:
+                            stoploss_price = price - 0.02 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 3
+                        elif stoploss_stage == 3:
+                            stoploss_price = price - 0.04 * price
+                            self.changeStopLoss(stoploss_price)
+                            df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                            df['STOPLOSS_STAGE'].iloc[df_index] = 4
+                        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
+                else:
                     self.deleteTransationData()
-            elif has_position < 0:
-                position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol)].index)[0]
-                price = float(df['PRICE'].iloc[position_index])
-                change = round((price - now_price) / price, 4)
-                if change >= 0.01:
-                    self.closePosition()
-                    self.deleteTransationData()
-            else:
-                self.deleteTransationData()
+
+            elif self.strategy == 'YuanCopyTrade':
+                if self.exchange_name == 'binance':
+                    position = self.exchange.fetch_positions([str(self.symbol)])
+                    has_position = float(position[0]['info']['positionAmt'])
+                    df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
+                    if has_position > 0:
+                        position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
+                        price = float(df['PRICE'].iloc[position_index])
+                        change = round((now_price - price) / price, 4)
+                        if change >= 0.01:
+                            self.closePosition()
+                            self.deleteTransationData()
+                    elif has_position < 0:
+                        position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
+                        price = float(df['PRICE'].iloc[position_index])
+                        change = round((price - now_price) / price, 4)
+                        if change >= 0.01:
+                            self.closePosition()
+                            self.deleteTransationData()
+                    else:
+                        self.deleteTransationData()
 
     def closePosition(self):
         '''
@@ -328,36 +323,21 @@ class YuanIndicator(Connector):
             return 'up'
 
     def insertTransationData(self, side, amount, price, stoploss_stage):
-        if self.strategy == 'Yuan':
-            df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-            df.loc[len(df)] = [self.api_key, self.symbol, side, amount, price, stoploss_stage]
-            df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
-        elif self.strategy == 'YuanCopyTrade':
-            df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransactionForCopyTrade.csv'))
-            df.loc[len(df)] = [self.api_key, self.symbol, side, amount, price, stoploss_stage]
-            df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransactionForCopyTrade.csv'), index=False)
+        df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
+        df.loc[len(df)] = [self.api_key, self.symbol, side, amount, price, self.strategy, stoploss_stage]
+        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
     
     def deleteTransationData(self):
-        if self.strategy == 'Yuan':
-            df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-            user_transaction_list = list(df[df['API_KEY'] == self.api_key].index)
-            if len(user_transaction_list) == 0:
-                return
-            for i in user_transaction_list:
-                if df['SYMBOL'].iloc[i] == self.symbol:
-                    df.drop(i, inplace=True)
-                    break
-            df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
-        elif self.strategy == 'YuanCopyTrade':
-            df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransactionForCopyTrade.csv'))
-            user_transaction_list = list(df[df['API_KEY'] == self.api_key].index)
-            if len(user_transaction_list) == 0:
-                return
-            for i in user_transaction_list:
-                if df['SYMBOL'].iloc[i] == self.symbol:
-                    df.drop(i, inplace=True)
-                    break
-            df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransactionForCopyTrade.csv'), index=False)
+        df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
+        user_transaction_list = list(df[df['API_KEY'] == self.api_key].index)
+        if len(user_transaction_list) == 0:
+            return
+        for i in user_transaction_list:
+            if (df['SYMBOL'].iloc[i] == self.symbol) and (df['STRATEGY'].iloc[i] == self.strategy):
+                df.drop(i, inplace=True)
+                break
+        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
+
 
 if __name__ == '__main__':
     print(os.path.join(os.path.dirname(__file__), 'YuanBTC.csv'))
