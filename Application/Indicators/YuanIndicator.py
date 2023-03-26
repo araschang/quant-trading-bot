@@ -250,16 +250,24 @@ class YuanIndicator(Connector):
                         position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                         price = float(df['PRICE'].iloc[position_index])
                         change = round((now_price - price) / price, 4)
-                        if change >= 0.01:
+                        if change >= 0.0075:
+                            stoploss_price = price + 0.0008 * price
+                            self.changeStopLoss(stoploss_price)
+                        elif change >= 0.01:
                             self.closePosition()
                             self.deleteTransationData()
+                            self.cancelOrder()
                     elif has_position < 0:
                         position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                         price = float(df['PRICE'].iloc[position_index])
                         change = round((price - now_price) / price, 4)
-                        if change >= 0.01:
+                        if change >= 0.0075:
+                            stoploss_price = price - 0.0008 * price
+                            self.changeStopLoss(stoploss_price)
+                        elif change >= 0.01:
                             self.closePosition()
                             self.deleteTransationData()
+                            self.cancelOrder()
                     else:
                         self.deleteTransationData()
 
