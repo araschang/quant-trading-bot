@@ -131,13 +131,17 @@ class YuanIndicator(Connector):
         if side == 'buy':
             stop_loss_side = 'sell'
             stop_loss_price = round(now_price - (stoplossPercent * now_price), round_digit)
+            take_profit_price = round(now_price + (stoplossPercent * now_price), round_digit)
         else:
             stop_loss_side = 'buy'
             stop_loss_price = round(now_price + (stoplossPercent * now_price), round_digit)
-            
+            take_profit_price = round(now_price - (stoplossPercent * now_price), round_digit)
+
         try:
             if self.exchange_name == 'binance':
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
+                if self.strategy == 'YuanCopyTrade':
+                    self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
             elif self.exchange_name == 'bybit':
                 if stop_loss_side == 'buy':
                     self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': stop_loss_price})
@@ -148,11 +152,15 @@ class YuanIndicator(Connector):
             now_price = float(self.getOHLCV('3m')['close'].iloc[-1])
             if side == 'buy':
                 stop_loss_price = round(now_price - (stoplossPercent * now_price), round_digit)
+                take_profit_price = round(now_price + (stoplossPercent * now_price), round_digit)
             else:
                 stop_loss_price = round(now_price + (stoplossPercent * now_price), round_digit)
+                take_profit_price = round(now_price - (stoplossPercent * now_price), round_digit)
             
             if self.exchange_name == 'binance':
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
+                if self.strategy == 'YuanCopyTrade':
+                    self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
             elif self.exchange_name == 'bybit':
                 if stop_loss_side == 'buy':
                     self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': stop_loss_price})
@@ -264,10 +272,6 @@ class YuanIndicator(Connector):
                         if change >= 0.0075:
                             stoploss_price = price - 0.0008 * price
                             self.changeStopLoss(stoploss_price)
-                        elif change >= 0.01:
-                            self.closePosition()
-                            self.deleteTransationData()
-                            self.cancelOrder()
                     else:
                         self.deleteTransationData()
 
