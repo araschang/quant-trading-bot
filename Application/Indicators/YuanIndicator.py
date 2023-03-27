@@ -274,6 +274,7 @@ class YuanIndicator(Connector):
                             self.changeStopLoss(stoploss_price)
                     else:
                         self.deleteTransationData()
+                        self.cancelOrder()
 
     def closePosition(self):
         '''
@@ -314,8 +315,11 @@ class YuanIndicator(Connector):
         Cancel order
         Return a dataframe with cancel order
         '''
-        orderId = self.exchange.fetch_open_orders(self.symbol)[0]['info']['orderId']
-        self.exchange.cancel_order(orderId, self.symbol)
+        try:
+            orderId = self.exchange.fetch_open_orders(self.symbol)[0]['info']['orderId']
+            self.exchange.cancel_order(orderId, self.symbol)
+        except:
+            pass
     
     def checkTrend(self):
         '''
