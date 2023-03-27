@@ -251,7 +251,7 @@ class YuanIndicator(Connector):
                         price = float(df['PRICE'].iloc[position_index])
                         change = round((now_price - price) / price, 4)
                         if change >= 0.0075:
-                            stoploss_price = price + 0.0008 * price
+                            stoploss_price = price + 0.005 * price
                             self.changeStopLoss(stoploss_price)
                         elif change >= 0.01:
                             self.closePosition()
