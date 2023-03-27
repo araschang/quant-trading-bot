@@ -52,8 +52,12 @@ def job_trade():
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
 
         if exchange == 'binance':
-            symbol = symbol.split('/')
-            symbol = symbol[0] + symbol[1]
+            if symbol[-4:] == 'BUSD':
+                symbol = symbol.split('/')
+                symbol = symbol[0] + 'USDT'
+            else:
+                symbol = symbol.split('/')
+                symbol = symbol[0] + symbol[1]
 
         ohlcv = pd.read_csv(symbol + '_now.csv')
         now_price = float(ohlcv['close'].iloc[-1])
