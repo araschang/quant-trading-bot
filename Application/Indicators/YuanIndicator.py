@@ -109,14 +109,14 @@ class YuanIndicator(Connector):
             return
 
         if self.exchange_name == 'binance':
-            if self.symbol == 'BTC/USDT':
+            if self.symbol[:3] == 'BTC':
                 round_digit = 1
-            elif self.symbol == 'ETH/USDT':
+        elif self.symbol[:3] == 'ETH':
                 round_digit = 2
         elif self.exchange_name == 'bybit':
-            if self.symbol == 'BTCUSDT':
+            if self.symbol[:3] == 'BTC':
                 round_digit = 1
-            elif self.symbol == 'ETHUSDT':
+        elif self.symbol[:3] == 'ETH':
                 round_digit = 2
         
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
@@ -250,31 +250,23 @@ class YuanIndicator(Connector):
                     self.deleteTransationData()
 
             elif self.strategy == 'YuanCopyTrade':
-                if self.exchange_name == 'binance':
-                    position = self.exchange.fetch_positions([str(self.symbol)])
-                    has_position = float(position[0]['info']['positionAmt'])
-                    df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-                    if has_position > 0:
-                        position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
-                        price = float(df['PRICE'].iloc[position_index])
-                        change = round((now_price - price) / price, 4)
-                        if change >= 0.0075:
-                            stoploss_price = price + 0.005 * price
-                            self.changeStopLoss(stoploss_price)
-                        elif change >= 0.01:
-                            self.closePosition()
-                            self.deleteTransationData()
-                            self.cancelOrder()
-                    elif has_position < 0:
-                        position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
-                        price = float(df['PRICE'].iloc[position_index])
-                        change = round((price - now_price) / price, 4)
-                        if change >= 0.0075:
-                            stoploss_price = price - 0.0008 * price
-                            self.changeStopLoss(stoploss_price)
-                    else:
-                        self.deleteTransationData()
-                        self.cancelOrder()
+                if has_position > 0:
+                    position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
+                    price = float(df['PRICE'].iloc[position_index])
+                    change = round((now_price - price) / price, 4)
+                    if change >= 0.0075:
+                        stoploss_price = price + 0.005 * price
+                        self.changeStopLoss(stoploss_price)
+                elif has_position < 0:
+                    position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
+                    price = float(df['PRICE'].iloc[position_index])
+                    change = round((price - now_price) / price, 4)
+                    if change >= 0.0075:
+                        stoploss_price = price - 0.005 * price
+                        self.changeStopLoss(stoploss_price)
+                else:
+                    self.deleteTransationData()
+                    self.cancelOrder()
 
     def closePosition(self):
         '''
