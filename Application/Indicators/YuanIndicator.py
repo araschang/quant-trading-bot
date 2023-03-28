@@ -173,15 +173,18 @@ class YuanIndicator(Connector):
         Change stop loss
         Return a dataframe with change stop loss
         '''
-        # bybit
-        # binance need to be added
-        order_info = self.exchange.fetch_open_orders(self.symbol)[0]
-        orderId = order_info['info']['orderId']
-        side = order_info['info']['side']
-        if side == 'BUY':
-            stop_loss_side = 'buy'
-        else:
+        df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
+        side = df[df['API_KEY'] == self.api_key & df['SYMBOL'] == self.symbol & df['STRATEGY'] == self.strategy]['SIDE'].iloc[0]
+        order_info = self.exchange.fetch_open_orders(self.symbol)
+        if side == 'buy':
             stop_loss_side = 'sell'
+        else:
+            stop_loss_side = 'buy'
+        for i in range(len(order_info)):
+            if order_info[i]['info']['side'] == stop_loss_side.upper():
+                orderId = order_info[i]['info']['orderId']
+                break
+
         self.exchange.cancel_order(orderId, self.symbol)
         self.exchange.create_market_order(self.symbol, stop_loss_side, 1, params={'stopLossPrice': price, 'closePosition': True})
         
