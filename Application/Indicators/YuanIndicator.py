@@ -319,7 +319,7 @@ class YuanIndicator(Connector):
             self.exchange.cancel_order(orderId, self.symbol)
         except:
             pass
-    
+
     def checkTrend(self):
         '''
         Check trend
@@ -353,7 +353,7 @@ class YuanIndicator(Connector):
                 break
         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
 
-    def ATR(DF, n=14):
+    def ATR(self, DF, n=14):
         df = DF.copy()
         df['H-L'] = df['high'] - df['low']
         df['H-PC'] = abs(df['high'] - df['close'].shift(1))
