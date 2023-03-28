@@ -96,7 +96,7 @@ class YuanIndicator(Connector):
                 else:
                     return ''
     
-    def openPosition(self, side, assetPercent, leverage: int, now_price: float, stoplossPercent) -> None:
+    def openPosition(self, ohlcv, side, assetPercent, leverage: int, now_price: float, stoplossPercent) -> None:
         '''
         Open position
         Return a dataframe with open position
@@ -118,7 +118,7 @@ class YuanIndicator(Connector):
                 round_digit = 1
         elif self.symbol[:3] == 'ETH':
                 round_digit = 2
-        
+        ohlcv['ATR'] = self.ATR(ohlcv, 14)
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
         amount = round(wallet_balance * assetPercent / now_price, 3)
         self.exchange.create_market_order(self.symbol, side, amount)
@@ -126,16 +126,17 @@ class YuanIndicator(Connector):
             now_price = float(self.exchange.fetch_positions([self.symbol])[0]['info']['entryPrice'])
         elif self.exchange_name == 'bybit':
             now_price = float(self.exchange.fetch_positions(self.symbol)[0]['info']['entry_price'])
-        self.insertTransationData(side, amount, now_price, 0)
+        atr = float(ohlcv['ATR'].iloc[-1])
+        self.insertTransationData(side, amount, now_price, atr, 0)
 
         if side == 'buy':
             stop_loss_side = 'sell'
-            stop_loss_price = round(now_price - (stoplossPercent * now_price), round_digit)
-            take_profit_price = round(now_price + (stoplossPercent * now_price), round_digit)
+            stop_loss_price = round(now_price - (2.5 * atr), round_digit)
+            take_profit_price = round(now_price + (4 * atr), round_digit)
         else:
             stop_loss_side = 'buy'
-            stop_loss_price = round(now_price + (stoplossPercent * now_price), round_digit)
-            take_profit_price = round(now_price - (stoplossPercent * now_price), round_digit)
+            stop_loss_price = round(now_price + (2.5 * atr), round_digit)
+            take_profit_price = round(now_price - (4 * atr), round_digit)
 
         try:
             if self.exchange_name == 'binance':
@@ -151,11 +152,11 @@ class YuanIndicator(Connector):
         except Exception:
             now_price = float(self.getOHLCV('3m')['close'].iloc[-1])
             if side == 'buy':
-                stop_loss_price = round(now_price - (stoplossPercent * now_price), round_digit)
-                take_profit_price = round(now_price + (stoplossPercent * now_price), round_digit)
+                stop_loss_price = round(now_price - (2.5 * atr), round_digit)
+                take_profit_price = round(now_price + (4 * atr), round_digit)
             else:
-                stop_loss_price = round(now_price + (stoplossPercent * now_price), round_digit)
-                take_profit_price = round(now_price - (stoplossPercent * now_price), round_digit)
+                stop_loss_price = round(now_price + (2.5 * atr), round_digit)
+                take_profit_price = round(now_price - (4 * atr), round_digit)
             
             if self.exchange_name == 'binance':
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
@@ -180,8 +181,9 @@ class YuanIndicator(Connector):
             stop_loss_side = 'sell'
         else:
             stop_loss_side = 'buy'
+        
         for i in range(len(order_info)):
-            if order_info[i]['info']['side'] == stop_loss_side.upper():
+            if order_info[i]['info']['type'] == 'STOP_MARKET':
                 orderId = order_info[i]['info']['orderId']
                 break
 
@@ -256,16 +258,18 @@ class YuanIndicator(Connector):
                 if has_position > 0:
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                     price = float(df['PRICE'].iloc[position_index])
-                    change = round((now_price - price) / price, 4)
-                    if change >= 0.0075:
-                        stoploss_price = price + 0.005 * price
+                    atr = float(df['ATR'].iloc[position_index])
+                    change = round(price + 3 * atr, 4)
+                    if now_price >= change:
+                        stoploss_price = round(price + 1.5 * atr, 2)
                         self.changeStopLoss(stoploss_price)
                 elif has_position < 0:
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                     price = float(df['PRICE'].iloc[position_index])
-                    change = round((price - now_price) / price, 4)
-                    if change >= 0.0075:
-                        stoploss_price = price - 0.005 * price
+                    atr = float(df['ATR'].iloc[position_index])
+                    change = round(price - 3 * atr, 4)
+                    if now_price <= change:
+                        stoploss_price = round(price - 1.5 * atr, 2)
                         self.changeStopLoss(stoploss_price)
                 else:
                     self.deleteTransationData()
@@ -333,9 +337,9 @@ class YuanIndicator(Connector):
             trend.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))
             return 'up'
 
-    def insertTransationData(self, side, amount, price, stoploss_stage):
+    def insertTransationData(self, side, amount, price, ATR, stoploss_stage):
         df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-        df.loc[len(df)] = [self.api_key, self.symbol, side, amount, price, self.strategy, stoploss_stage]
+        df.loc[len(df)] = [self.api_key, self.symbol, side, amount, price, ATR, self.strategy, stoploss_stage]
         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
     
     def deleteTransationData(self):
@@ -349,6 +353,14 @@ class YuanIndicator(Connector):
                 break
         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
 
+    def ATR(DF, n=14):
+        df = DF.copy()
+        df['H-L'] = df['high'] - df['low']
+        df['H-PC'] = abs(df['high'] - df['close'].shift(1))
+        df['L-PC'] = abs(df['low'] - df['close'].shift(1))
+        df['TR'] = df[['H-L', 'H-PC', 'L-PC']].max(axis=1, skipna=False)
+        df['ATR'] = df['TR'].ewm(span=n, min_periods=n).mean()
+        return df['ATR']
 
 if __name__ == '__main__':
     print(os.path.join(os.path.dirname(__file__), 'YuanBTC.csv'))

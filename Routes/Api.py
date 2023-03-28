@@ -65,7 +65,7 @@ def job_trade():
             signal = btc_signal
         elif symbol[:3] == 'ETH':
             signal = eth_signal
-        indicator.openPosition(signal, assetPercent, 100, now_price, stoplossPercent)
+        indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
         indicator.checkIfThereIsStopLoss(now_price)
     print('JOB "CHECK STOPLOSS" DONE')
     print('JOB "TRADE" DONE')
@@ -117,7 +117,7 @@ api.add_resource(
 scheduler.add_job(job_trade, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
 # scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2))
 scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
-# scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
+scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
 
