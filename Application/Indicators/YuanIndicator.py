@@ -135,11 +135,11 @@ class YuanIndicator(Connector):
         if side == 'buy':
             stop_loss_side = 'sell'
             stop_loss_price = round(now_price - (2.5 * atr), round_digit)
-            take_profit_price = round(now_price + (4 * atr), round_digit)
+            take_profit_price = round(now_price + (5 * atr), round_digit)
         else:
             stop_loss_side = 'buy'
             stop_loss_price = round(now_price + (2.5 * atr), round_digit)
-            take_profit_price = round(now_price - (4 * atr), round_digit)
+            take_profit_price = round(now_price - (5 * atr), round_digit)
 
         try:
             if self.exchange_name == 'binance':
@@ -156,10 +156,10 @@ class YuanIndicator(Connector):
             now_price = float(self.getOHLCV('3m')['close'].iloc[-1])
             if side == 'buy':
                 stop_loss_price = round(now_price - (2.5 * atr), round_digit)
-                take_profit_price = round(now_price + (4 * atr), round_digit)
+                take_profit_price = round(now_price + (5 * atr), round_digit)
             else:
                 stop_loss_price = round(now_price + (2.5 * atr), round_digit)
-                take_profit_price = round(now_price - (4 * atr), round_digit)
+                take_profit_price = round(now_price - (5 * atr), round_digit)
             
             if self.exchange_name == 'binance':
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
@@ -263,24 +263,39 @@ class YuanIndicator(Connector):
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
                     stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
-                    change = round(price + 3 * atr, 4)
-                    if now_price >= change and stoploss_stage == 0:
-                        stoploss_price = round(price + 1.5 * atr, 2)
+                    amount = float(df['AMOUNT'].iloc[position_index])
+                    if now_price >= round(price + 0.75 * atr, 4) and stoploss_stage == 0:
+                        stoploss_price = round(price + 0.0008 * price, 2)
                         self.changeStopLoss(stoploss_price)
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 1
                         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
+                    elif now_price >= round(price + 2.5 * atr, 4) and stoploss_stage == 1:
+                        self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
+                        stoploss_price = round(price + 2 * atr, 2)
+                        self.changeStopLoss(stoploss_price)
+                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                        df['STOPLOSS_STAGE'].iloc[df_index] = 2
+                        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
+                    
                 elif has_position < 0:
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
                     stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
                     change = round(price - 3 * atr, 4)
-                    if now_price <= change and stoploss_stage == 0:
-                        stoploss_price = round(price - 1.5 * atr, 2)
+                    if now_price <= round(price - 0.75 * atr, 4) and stoploss_stage == 0:
+                        stoploss_price = round(price - 0.0008 * price, 2)
                         self.changeStopLoss(stoploss_price)
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 1
+                        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
+                    elif now_price <= round(price - 2.5 * atr, 4) and stoploss_stage == 1:
+                        self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
+                        stoploss_price = round(price - 2 * atr, 2)
+                        self.changeStopLoss(stoploss_price)
+                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                        df['STOPLOSS_STAGE'].iloc[df_index] = 2
                         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
                 else:
                     self.deleteTransationData()
