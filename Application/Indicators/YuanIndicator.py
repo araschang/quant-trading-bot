@@ -304,7 +304,8 @@ class YuanIndicator(Connector):
         Return a dataframe with check if no position cancel open order
         '''
         if self.exchange_name == 'binance':
-            has_position = len(self.exchange.fetch_positions([str(self.symbol)]))
+            position = len(self.exchange.fetch_positions([str(self.symbol)]))
+            has_position = float(position[0]['info']['positionAmt'])
             if has_position == 0:
                 if len(self.exchange.fetch_open_orders(self.symbol)) != 0:
                     self.cancelOrder()
@@ -312,7 +313,6 @@ class YuanIndicator(Connector):
                 if len(self.exchange.fetch_open_orders(self.symbol)) != 2:
                     self.cancelOrder()
                     df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-                    print(self.api_key, self.symbol, self.strategy)
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
