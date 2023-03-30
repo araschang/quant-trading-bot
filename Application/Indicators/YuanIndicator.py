@@ -262,18 +262,26 @@ class YuanIndicator(Connector):
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
+                    stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
                     change = round(price + 3 * atr, 4)
-                    if now_price >= change:
+                    if now_price >= change and stoploss_stage == 0:
                         stoploss_price = round(price + 1.5 * atr, 2)
                         self.changeStopLoss(stoploss_price)
+                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                        df['STOPLOSS_STAGE'].iloc[df_index] = 1
+                        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
                 elif has_position < 0:
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
+                    stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
                     change = round(price - 3 * atr, 4)
-                    if now_price <= change:
+                    if now_price <= change and stoploss_stage == 0:
                         stoploss_price = round(price - 1.5 * atr, 2)
                         self.changeStopLoss(stoploss_price)
+                        df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
+                        df['STOPLOSS_STAGE'].iloc[df_index] = 1
+                        df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
                 else:
                     self.deleteTransationData()
                     self.cancelOrder()
