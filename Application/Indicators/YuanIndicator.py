@@ -178,7 +178,7 @@ class YuanIndicator(Connector):
         Return a dataframe with change stop loss
         '''
         df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-        side = df[df['API_KEY'] == self.api_key & df['SYMBOL'] == self.symbol & df['STRATEGY'] == self.strategy]['SIDE'].iloc[0]
+        side = df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)]['SIDE'].iloc[0]
         order_info = self.exchange.fetch_open_orders(self.symbol)
         if side == 'buy':
             stop_loss_side = 'sell'
