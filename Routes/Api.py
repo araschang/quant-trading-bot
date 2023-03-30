@@ -4,6 +4,7 @@ from discord import SyncWebhook
 import pandas as pd
 import os
 import datetime
+import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from Base.ConfigReader import Config
 from Application.Api.Controller.WebsocketController import WebsocketController
@@ -14,6 +15,7 @@ app = Flask(__name__)
 api = Api(app)
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 7})
 config = Config()
+logging.basicConfig(filename='quantlog.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
 stable_check_webhook = config['Discord']['stable_check']
 api_key = config['Binance']['api_key']
 api_secret = config['Binance']['api_secret']
@@ -58,15 +60,17 @@ def job_trade():
             else:
                 symbol = symbol.split('/')
                 symbol = symbol[0] + symbol[1]
-
-        ohlcv = pd.read_csv(symbol + '_now.csv')
-        now_price = float(ohlcv['close'].iloc[-1])
-        if symbol[:3] == 'BTC':
-            signal = btc_signal
-        elif symbol[:3] == 'ETH':
-            signal = eth_signal
-        indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
-        indicator.checkIfThereIsStopLoss(now_price)
+        try:
+            ohlcv = pd.read_csv(symbol + '_now.csv')
+            now_price = float(ohlcv['close'].iloc[-1])
+            if symbol[:3] == 'BTC':
+                signal = btc_signal
+            elif symbol[:3] == 'ETH':
+                signal = eth_signal
+            indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
+            indicator.checkIfThereIsStopLoss(now_price)
+        except Exception as e:
+            logging.error('An error occurred: %s', e, exc_info=True)
     print('JOB "CHECK STOPLOSS" DONE')
     print('JOB "TRADE" DONE')
 
@@ -79,7 +83,10 @@ def check_stoploss_order():
         symbol = member_df['SYMBOL'].iloc[i]
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
         now_price = float(indicator.getOHLCV('3m')['close'].iloc[-1])
-        indicator.checkIfThereIsStopLoss(now_price)
+        try:
+            indicator.checkIfThereIsStopLoss(now_price)
+        except Exception as e:
+            logging.error('An error occurred: %s', e, exc_info=True)
     print('JOB "CHECK STOPLOSS" DONE')
 
 def job_trend_detect():
@@ -96,7 +103,10 @@ def job_check_if_no_position_then_cancel_open_order(): # for bybit
         symbol = member_df['SYMBOL'].iloc[i]
         strategy = member_df['STRATEGY'].iloc[i]
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
-        indicator.checkIfNoPositionCancelOpenOrder()
+        try:
+            indicator.checkIfNoPositionCancelOpenOrder()
+        except Exception as e:
+            logging.error('An error occurred: %s', e, exc_info=True)
     print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')
 
 def stable_check():
