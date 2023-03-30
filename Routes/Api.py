@@ -94,7 +94,8 @@ def job_check_if_no_position_then_cancel_open_order(): # for bybit
         api_secret = member_df['API_SECRET'].iloc[i]
         exchange = member_df['EXCHANGE'].iloc[i]
         symbol = member_df['SYMBOL'].iloc[i]
-        indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
+        strategy = member_df['STRATEGY'].iloc[i]
+        indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
         indicator.checkIfNoPositionCancelOpenOrder()
     print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')
 

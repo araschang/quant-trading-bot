@@ -312,7 +312,6 @@ class YuanIndicator(Connector):
                 if len(self.exchange.fetch_open_orders(self.symbol)) != 2:
                     self.cancelOrder()
                     df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-                    print(self.api_key, self.symbol, self.strategy)
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
@@ -389,9 +388,6 @@ class YuanIndicator(Connector):
         return df['ATR']
 
 if __name__ == '__main__':
-    api_key = 'Af245tCHxHvrKWOqrzA2T8lUPRNjlkuIPZqq9SnzrltBxdFZ7jJhigTLVEbQX70d'
     symbol = 'ETH/USDT'
     strategy = 'YuanCopyTrade'
     df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
-    position_index = list(df[(df['API_KEY'] == api_key) & (df['SYMBOL'] == symbol) & (df['STRATEGY'] == strategy)].index)[0]
-    print(position_index)
