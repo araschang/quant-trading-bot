@@ -304,7 +304,7 @@ class YuanIndicator(Connector):
         Return a dataframe with check if no position cancel open order
         '''
         if self.exchange_name == 'binance':
-            position = len(self.exchange.fetch_positions([str(self.symbol)]))
+            position = self.exchange.fetch_positions([str(self.symbol)])
             has_position = float(position[0]['info']['positionAmt'])
             if has_position == 0:
                 if len(self.exchange.fetch_open_orders(self.symbol)) != 0:
