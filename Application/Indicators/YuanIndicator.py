@@ -116,12 +116,12 @@ class YuanIndicator(Connector):
         if self.exchange_name == 'binance':
             if self.symbol[:3] == 'BTC':
                 round_digit = 1
-        elif self.symbol[:3] == 'ETH':
+            elif self.symbol[:3] == 'ETH':
                 round_digit = 2
         elif self.exchange_name == 'bybit':
             if self.symbol[:3] == 'BTC':
                 round_digit = 1
-        elif self.symbol[:3] == 'ETH':
+            elif self.symbol[:3] == 'ETH':
                 round_digit = 2
         ohlcv['ATR'] = self.ATR(ohlcv, 14)
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
