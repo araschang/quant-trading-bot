@@ -22,7 +22,7 @@ api_secret = config['Binance']['api_secret']
 
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('1m')
+    ohlcv = indicator.getOHLCV('3m')
     # ohlcv.to_csv('BTCUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
@@ -32,7 +32,7 @@ def job_bitcoin_signal():
 
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('1m')
+    ohlcv = indicator.getOHLCV('3m')
     # ohlcv.to_csv('ETHUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
@@ -69,6 +69,7 @@ def job_trade():
             indicator.checkIfNoPositionCancelOpenOrder()
         except Exception as e:
             logging.error('An error occurred: %s', e, exc_info=True)
+            print(e)
     print('JOB "CHECK STOPLOSS" DONE')
     print('JOB "TRADE" DONE')
     print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')
@@ -126,7 +127,7 @@ api.add_resource(
 # scheduler.add_job(job_eth_signal, 'interval', seconds=5)
 scheduler.add_job(job_trade, 'interval', seconds=3)
 # scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2))
-# scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 # scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=3, next_run_time=scheduler.get_jobs()[0].next_run_time)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
