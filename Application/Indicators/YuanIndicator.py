@@ -275,7 +275,10 @@ class YuanIndicator(Connector):
                     elif now_price >= round(price + 2.5 * atr, 4) and stoploss_stage == 1:
                         self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
                         stoploss_price = round(price + 2 * atr, 2)
-                        self.changeStopLoss(stoploss_price)
+                        try:
+                            self.changeStopLoss(stoploss_price)
+                        except:
+                            self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 2
                         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
@@ -295,7 +298,10 @@ class YuanIndicator(Connector):
                     elif now_price <= round(price - 2.5 * atr, 4) and stoploss_stage == 1:
                         self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
                         stoploss_price = round(price - 2 * atr, 2)
-                        self.changeStopLoss(stoploss_price)
+                        try:
+                            self.changeStopLoss(stoploss_price)
+                        except:
+                            self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 2
                         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)

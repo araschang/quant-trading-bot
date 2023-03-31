@@ -122,10 +122,10 @@ api.add_resource(
 
 # scheduler.add_job(job_bitcoin_signal, 'interval', seconds=5)
 # scheduler.add_job(job_eth_signal, 'interval', seconds=5)
-scheduler.add_job(job_trade, 'interval', seconds=4, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=1))
+scheduler.add_job(job_trade, 'interval', seconds=3)
 # scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2))
 # scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
-scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=4, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=3, next_run_time=scheduler.get_jobs()[0].next_run_time)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
 
