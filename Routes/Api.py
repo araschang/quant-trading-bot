@@ -23,25 +23,27 @@ api_secret = config['Binance']['api_secret']
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
     ohlcv = indicator.getOHLCV('1m')
-    ohlcv.to_csv('BTCUSDT_now.csv')
+    # ohlcv.to_csv('BTCUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
+    now_price = float(ohlcv['close'].iloc[-1])
     print('JOB "BTC DETECT" DONE')
-    return signal
+    return signal, now_price, ohlcv
 
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
     ohlcv = indicator.getOHLCV('1m')
-    ohlcv.to_csv('ETHUSDT_now.csv')
+    # ohlcv.to_csv('ETHUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
+    now_price = float(ohlcv['close'].iloc[-1])
     print('JOB "ETH DETECT" DONE')
-    return signal
+    return signal, now_price, ohlcv
 
 def job_trade():
     member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
-    btc_signal = job_bitcoin_signal()
-    eth_signal = job_eth_signal()
+    btc_signal, btc_price, btc_ohlcv = job_bitcoin_signal()
+    eth_signal, eth_price, eth_ohlcv = job_eth_signal()
     for i in range(len(member_df)):
         api_key = member_df['API_KEY'].iloc[i]
         api_secret = member_df['API_SECRET'].iloc[i]
@@ -53,20 +55,15 @@ def job_trade():
 
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
 
-        if exchange == 'binance':
-            if symbol[-4:] == 'BUSD':
-                symbol = symbol.split('/')
-                symbol = symbol[0] + 'USDT'
-            else:
-                symbol = symbol.split('/')
-                symbol = symbol[0] + symbol[1]
         try:
-            ohlcv = pd.read_csv(symbol + '_now.csv')
-            now_price = float(ohlcv['close'].iloc[-1])
             if symbol[:3] == 'BTC':
                 signal = btc_signal
+                now_price = btc_price
+                ohlcv = btc_ohlcv
             elif symbol[:3] == 'ETH':
                 signal = eth_signal
+                now_price = eth_price
+                ohlcv = eth_ohlcv
             indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
             indicator.checkIfThereIsStopLoss(now_price)
         except Exception as e:
@@ -82,7 +79,7 @@ def check_stoploss_order():
         exchange = member_df['EXCHANGE'].iloc[i]
         symbol = member_df['SYMBOL'].iloc[i]
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
-        now_price = float(indicator.getOHLCV('3m')['close'].iloc[-1])
+        now_price = float(indicator.getOHLCV('1m')['close'].iloc[-1])
         try:
             indicator.checkIfThereIsStopLoss(now_price)
         except Exception as e:
