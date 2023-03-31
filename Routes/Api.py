@@ -13,7 +13,7 @@ from Application.Indicators.YuanIndicator import YuanIndicator
 
 app = Flask(__name__)
 api = Api(app)
-scheduler = BackgroundScheduler(job_defaults={'max_instances': 7})
+scheduler = BackgroundScheduler(job_defaults={'max_instances': 2})
 config = Config()
 logging.basicConfig(filename='quantlog.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
 stable_check_webhook = config['Discord']['stable_check']
