@@ -71,6 +71,7 @@ def job_trade():
             logging.error('An error occurred: %s', e, exc_info=True)
     print('JOB "CHECK STOPLOSS" DONE')
     print('JOB "TRADE" DONE')
+    print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')
 
 def check_stoploss_order():
     member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
@@ -130,6 +131,4 @@ scheduler.add_job(job_trade, 'interval', seconds=3)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
 
-if __name__ == '__main__':
-    print(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
 
