@@ -267,7 +267,7 @@ class YuanIndicator(Connector):
                     stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
                     amount = float(df['AMOUNT'].iloc[position_index])
                     if now_price >= round(price + 0.75 * atr, 4) and stoploss_stage == 0:
-                        stoploss_price = round(price + 0.0008 * price, 2)
+                        stoploss_price = round(price + 0.001 * price, 2)
                         self.changeStopLoss(stoploss_price)
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 1
@@ -286,7 +286,7 @@ class YuanIndicator(Connector):
                     atr = float(df['ATR'].iloc[position_index])
                     stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
                     if now_price <= round(price - 0.75 * atr, 4) and stoploss_stage == 0:
-                        stoploss_price = round(price - 0.0008 * price, 2)
+                        stoploss_price = round(price - 0.001 * price, 2)
                         self.changeStopLoss(stoploss_price)
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 1
