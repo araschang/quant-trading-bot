@@ -335,7 +335,7 @@ class YuanIndicator(Connector):
                 if len(self.exchange.fetch_open_orders(self.symbol)) != 0:
                     self.cancelOrder()
             else:
-                if len(self.exchange.fetch_open_orders(self.symbol)) != 2:
+                if len(self.exchange.fetch_open_orders(self.symbol)) < 2:
                     self.cancelOrder()
                     df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'))
                     position_index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
