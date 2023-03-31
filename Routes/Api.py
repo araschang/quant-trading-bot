@@ -22,7 +22,7 @@ api_secret = config['Binance']['api_secret']
 
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('3m')
+    ohlcv = indicator.getOHLCV('1m')
     ohlcv.to_csv('BTCUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
@@ -31,7 +31,7 @@ def job_bitcoin_signal():
 
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('3m')
+    ohlcv = indicator.getOHLCV('1m')
     ohlcv.to_csv('ETHUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)

@@ -84,14 +84,16 @@ class YuanIndicator(Connector):
             except Exception as e:
                 ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
-            if slope <= 0 and trend == 'up':
+            # if slope <= 0 and trend == 'up':
+            if slope <= 0:
                 if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     self.discord.sendMessage(f'**{symbol}** BUY!')
                     return 'buy'
                 else:
                     return ''
-            elif slope > 0 and trend == 'down':
+            # elif slope > 0 and trend == 'down':
+            elif slope > 0:
                 if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     self.discord.sendMessage(f'**{symbol}** SELL!')
@@ -283,7 +285,6 @@ class YuanIndicator(Connector):
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
                     stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
-                    change = round(price - 3 * atr, 4)
                     if now_price <= round(price - 0.75 * atr, 4) and stoploss_stage == 0:
                         stoploss_price = round(price - 0.0008 * price, 2)
                         self.changeStopLoss(stoploss_price)
