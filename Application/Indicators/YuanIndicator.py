@@ -285,6 +285,7 @@ class YuanIndicator(Connector):
                     price = float(df['PRICE'].iloc[position_index])
                     atr = float(df['ATR'].iloc[position_index])
                     stoploss_stage = int(df['STOPLOSS_STAGE'].iloc[position_index])
+                    amount = float(df['AMOUNT'].iloc[position_index])
                     if now_price <= round(price - 0.75 * atr, 4) and stoploss_stage == 0:
                         stoploss_price = round(price - 0.001 * price, 2)
                         self.changeStopLoss(stoploss_price)
