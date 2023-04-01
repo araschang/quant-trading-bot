@@ -23,7 +23,6 @@ api_secret = config['Binance']['api_secret']
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
     ohlcv = indicator.getOHLCV('3m')
-    # ohlcv.to_csv('BTCUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
     now_price = float(ohlcv['close'].iloc[-1])
@@ -33,7 +32,6 @@ def job_bitcoin_signal():
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
     ohlcv = indicator.getOHLCV('3m')
-    # ohlcv.to_csv('ETHUSDT_now.csv')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
     now_price = float(ohlcv['close'].iloc[-1])
@@ -59,11 +57,11 @@ def job_trade():
             if symbol[:3] == 'BTC':
                 signal = btc_signal
                 now_price = btc_price
-                ohlcv = btc_ohlcv
+                ohlcv = btc_ohlcv.copy()
             elif symbol[:3] == 'ETH':
                 signal = eth_signal
                 now_price = eth_price
-                ohlcv = eth_ohlcv
+                ohlcv = eth_ohlcv.copy()
             indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
             indicator.checkIfThereIsStopLoss(now_price)
             indicator.checkIfNoPositionCancelOpenOrder()
@@ -82,7 +80,7 @@ def check_stoploss_order():
         exchange = member_df['EXCHANGE'].iloc[i]
         symbol = member_df['SYMBOL'].iloc[i]
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
-        now_price = float(indicator.getOHLCV('1m')['close'].iloc[-1])
+        now_price = float(indicator.getOHLCV('3m')['close'].iloc[-1])
         try:
             indicator.checkIfThereIsStopLoss(now_price)
         except Exception as e:
@@ -127,7 +125,7 @@ api.add_resource(
 # scheduler.add_job(job_eth_signal, 'interval', seconds=5)
 scheduler.add_job(job_trade, 'interval', seconds=3)
 # scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2))
-scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+# scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 # scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=3, next_run_time=scheduler.get_jobs()[0].next_run_time)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
