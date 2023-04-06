@@ -88,16 +88,16 @@ class YuanIndicator(Connector):
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
             
             index = list(close_df[(df['API_KEY'] == self.api_key) & (close_df['SYMBOL'] == self.symbol) & (close_df['STRATEGY'] == self.strategy)].index)[0]
-            # if slope <= 0:
-            if slope <= 0 and trend == 'up':
+            if slope <= 0:
+            # if slope <= 0 and trend == 'up':
                 if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** BUY!')
                     return 'buy'
                 else:
                     return ''
-            elif slope > 0 and trend == 'down':
-            # elif slope > 0:
+            # elif slope > 0 and trend == 'down':
+            elif slope > 0:
                 if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** SELL!')
@@ -141,11 +141,11 @@ class YuanIndicator(Connector):
 
         if side == 'buy':
             stop_loss_side = 'sell'
-            stop_loss_price = round(now_price - (2.5 * atr), round_digit)
+            stop_loss_price = round(now_price - (1.5 * atr), round_digit)
             take_profit_price = round(now_price + (5 * atr), round_digit)
         else:
             stop_loss_side = 'buy'
-            stop_loss_price = round(now_price + (2.5 * atr), round_digit)
+            stop_loss_price = round(now_price + (1.5 * atr), round_digit)
             take_profit_price = round(now_price - (5 * atr), round_digit)
 
         try:
@@ -162,10 +162,10 @@ class YuanIndicator(Connector):
         except Exception:
             now_price = float(self.getOHLCV('3m')['close'].iloc[-1])
             if side == 'buy':
-                stop_loss_price = round(now_price - (2.5 * atr), round_digit)
+                stop_loss_price = round(now_price - (1.5 * atr), round_digit)
                 take_profit_price = round(now_price + (5 * atr), round_digit)
             else:
-                stop_loss_price = round(now_price + (2.5 * atr), round_digit)
+                stop_loss_price = round(now_price + (1.5 * atr), round_digit)
                 take_profit_price = round(now_price - (5 * atr), round_digit)
             
             if self.exchange_name == 'binance':
@@ -278,7 +278,7 @@ class YuanIndicator(Connector):
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 1
                         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
-                    elif now_price >= round(price + 2.5 * atr, 4) and stoploss_stage == 1:
+                    elif now_price >= round(price + 3 * atr, 4) and stoploss_stage == 1:
                         self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
                         self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Sell Half')
                         stoploss_price = round(price + 2 * atr, 2)
@@ -303,7 +303,7 @@ class YuanIndicator(Connector):
                         df_index = list(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)].index)[0]
                         df['STOPLOSS_STAGE'].iloc[df_index] = 1
                         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
-                    elif now_price <= round(price - 2.5 * atr, 4) and stoploss_stage == 1:
+                    elif now_price <= round(price - 3 * atr, 4) and stoploss_stage == 1:
                         self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
                         self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Buy Half')
                         stoploss_price = round(price - 2 * atr, 2)
