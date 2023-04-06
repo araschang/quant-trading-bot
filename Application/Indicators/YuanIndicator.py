@@ -86,17 +86,18 @@ class YuanIndicator(Connector):
             except Exception as e:
                 ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
-            # if slope <= 0 and trend == 'up':
-            index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
-            if slope <= 0:
+            
+            index = list(close_df[(df['API_KEY'] == self.api_key) & (close_df['SYMBOL'] == self.symbol) & (close_df['STRATEGY'] == self.strategy)].index)[0]
+            # if slope <= 0:
+            if slope <= 0 and trend == 'up':
                 if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** BUY!')
                     return 'buy'
                 else:
                     return ''
-            # elif slope > 0 and trend == 'down':
-            elif slope > 0:
+            elif slope > 0 and trend == 'down':
+            # elif slope > 0:
                 if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** SELL!')

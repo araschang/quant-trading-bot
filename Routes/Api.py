@@ -13,7 +13,7 @@ from Application.Indicators.YuanIndicator import YuanIndicator
 
 app = Flask(__name__)
 api = Api(app)
-scheduler = BackgroundScheduler(job_defaults={'max_instances': 2})
+scheduler = BackgroundScheduler(job_defaults={'max_instances': 3})
 config = Config()
 logging.basicConfig(filename='quantlog.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
 stable_check_webhook = config['Discord']['stable_check']
@@ -22,7 +22,7 @@ api_secret = config['Binance']['api_secret']
 
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('3m')
+    ohlcv = indicator.getOHLCV('5m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
     now_price = float(ohlcv['close'].iloc[-1])
@@ -31,7 +31,7 @@ def job_bitcoin_signal():
 
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('3m')
+    ohlcv = indicator.getOHLCV('5m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
     now_price = float(ohlcv['close'].iloc[-1])
@@ -125,7 +125,7 @@ api.add_resource(
 # scheduler.add_job(job_eth_signal, 'interval', seconds=5)
 scheduler.add_job(job_trade, 'interval', seconds=3)
 # scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2))
-# scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 # scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=3, next_run_time=scheduler.get_jobs()[0].next_run_time)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
