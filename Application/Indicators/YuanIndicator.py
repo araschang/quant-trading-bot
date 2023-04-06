@@ -77,17 +77,19 @@ class YuanIndicator(Connector):
         elif self.exchange_name == 'bybit':
             symbol = self.symbol
 
-        if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8.5:
+        if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
             trend = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))['trend'].iloc[-1]
             try:
+                close_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanClose.csv'))
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
             except Exception as e:
                 ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
             # if slope <= 0 and trend == 'up':
+            index = list(df[(df['API_KEY'] == self.api_key) & (df['SYMBOL'] == self.symbol) & (df['STRATEGY'] == self.strategy)].index)[0]
             if slope <= 0:
-                if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
+                if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** BUY!')
                     return 'buy'
@@ -95,7 +97,7 @@ class YuanIndicator(Connector):
                     return ''
             # elif slope > 0 and trend == 'down':
             elif slope > 0:
-                if str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1]):
+                if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** SELL!')
                     return 'sell'
@@ -197,7 +199,7 @@ class YuanIndicator(Connector):
         self.exchange.cancel_order(orderId, self.symbol)
         self.exchange.create_market_order(self.symbol, stop_loss_side, 1, params={'stopLossPrice': price, 'closePosition': True})
         
-    def checkIfThereIsStopLoss(self, now_price):
+    def checkIfThereIsStopLoss(self, now_price, ohlcv):
         if self.exchange_name == 'binance':
             position = self.exchange.fetch_positions([str(self.symbol)])
             has_position = float(position[0]['info']['positionAmt'])
@@ -312,6 +314,12 @@ class YuanIndicator(Connector):
                         df['STOPLOSS_STAGE'].iloc[df_index] = 2
                         df.to_csv(os.path.join(os.path.dirname(__file__), 'YuanTransaction.csv'), index=False)
                 else:
+                    count = len(df.loc[(df['SYMBOL'] == self.symbol) & (df['API_KEY'] == self.api_key) & (df['STRATEGY'] == self.strategy)])
+                    if count > 0:
+                        df_close = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanClose.csv'))
+                        index = list(df_close.loc[(df_close['SYMBOL'] == self.symbol) & (df_close['API_KEY'] == self.api_key) & (df_close['STRATEGY'] == self.strategy)].index)[0]
+                        df_close['TIME'].iloc[index] = ohlcv['time'].iloc[-1]
+                        df_close.to_csv(os.path.join(os.path.dirname(__file__), 'YuanClose.csv'), index=False)
                     self.deleteTransationData()
                     self.cancelOrder()
 

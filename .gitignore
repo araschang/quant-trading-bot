@@ -22,3 +22,4 @@ Application/Indicators/YuanMember.csv
 Application/Indicators/YuanMemberForCopyTrade.csv
 Application/Indicators/YuanTransaction.csv
 Application/Indicators/YuanTransactionForCopyTrade.csv
+Application/Indicators/YuanClose.csv

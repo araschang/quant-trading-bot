@@ -62,8 +62,8 @@ def job_trade():
                 signal = eth_signal
                 now_price = eth_price
                 ohlcv = eth_ohlcv.copy()
+            indicator.checkIfThereIsStopLoss(now_price, ohlcv)
             indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
-            indicator.checkIfThereIsStopLoss(now_price)
             indicator.checkIfNoPositionCancelOpenOrder()
         except Exception as e:
             logging.error('An error occurred: %s', e, exc_info=True)
