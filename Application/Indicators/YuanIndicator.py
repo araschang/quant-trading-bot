@@ -77,7 +77,7 @@ class YuanIndicator(Connector):
         elif self.exchange_name == 'bybit':
             symbol = self.symbol
 
-        if ohlcv_df['volume'].iloc[-1] >= mean_volume * 8:
+        if ohlcv_df['volume'].iloc[-1] >= mean_volume * 10:
             slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
             trend = pd.read_csv(os.path.join(os.path.dirname(__file__), 'YuanTrend.csv'))['trend'].iloc[-1]
             try:
