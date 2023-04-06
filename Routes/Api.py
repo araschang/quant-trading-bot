@@ -10,6 +10,7 @@ from Base.ConfigReader import Config
 from Application.Api.Controller.WebsocketController import WebsocketController
 from Application.Api.Controller.IndicatorController import IndicatorController
 from Application.Indicators.YuanIndicator import YuanIndicator
+from Application.Api.Service.WebsocketService import WebsocketService
 
 app = Flask(__name__)
 api = Api(app)
@@ -72,20 +73,12 @@ def job_trade():
     print('JOB "TRADE" DONE')
     print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')
 
-def check_stoploss_order():
-    member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
-    for i in range(len(member_df)):
-        api_key = member_df['API_KEY'].iloc[i]
-        api_secret = member_df['API_SECRET'].iloc[i]
-        exchange = member_df['EXCHANGE'].iloc[i]
-        symbol = member_df['SYMBOL'].iloc[i]
-        indicator = YuanIndicator(symbol, exchange, api_key, api_secret)
-        now_price = float(indicator.getOHLCV('3m')['close'].iloc[-1])
-        try:
-            indicator.checkIfThereIsStopLoss(now_price)
-        except Exception as e:
-            logging.error('An error occurred: %s', e, exc_info=True)
-    print('JOB "CHECK STOPLOSS" DONE')
+def binance_websocket():
+    try:
+        WebsocketService.binanceWebsocket('btcusdt', '3m')
+    except Exception as e:
+        logging.error('An error occurred: %s', e, exc_info=True)
+        print(e)
 
 def job_trend_detect():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
@@ -127,7 +120,10 @@ scheduler.add_job(job_trade, 'interval', seconds=3)
 # scheduler.add_job(check_stoploss_order, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=2))
 # scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 # scheduler.add_job(job_check_if_no_position_then_cancel_open_order, 'interval', seconds=3, next_run_time=scheduler.get_jobs()[0].next_run_time)
+scheduler.add_job(binance_websocket, 'interval', hours=24)
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
+
+
 
 

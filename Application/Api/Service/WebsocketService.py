@@ -2,7 +2,7 @@ import websocket
 import datetime
 import pandas as pd
 import json
-
+import os
 class WebsocketService(object):
     def __init__(self):
         pass
@@ -10,7 +10,7 @@ class WebsocketService(object):
     @classmethod
     def binanceWebsocket(self, currency, timeframe):
         websocket.enableTrace(False)
-        socket = f'wss://stream.binancefuture.com/ws/{currency}@kline_{timeframe}'
+        socket = f'wss://fstream.binance.com/ws/{currency}@kline_{timeframe}'
         ws = websocket.WebSocketApp(socket,
                                     on_message=self.binance_on_message,
                                     on_error=self.on_error,
@@ -47,7 +47,7 @@ class WebsocketService(object):
                 'volume': [float(v)],
             }
             df = pd.DataFrame(data)
-            df.to_csv('./Application/Api/Service/LivePrice/binance_btc.csv')
+            df.to_csv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'Indicators', 'BTCUSDT_LIVE.csv'))
             print(df)
         except Exception as e:
             print(e)
@@ -92,3 +92,7 @@ class WebsocketService(object):
     @classmethod
     def on_pong(self, wsapp, message):
         print("Got a pong! No need to respond")
+
+if __name__ == "__main__":
+    WebsocketService.binanceWebsocket('btcusdt', '3m')
+    # print(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'Indicators', 'BTCUSDT_LIVE.csv'))
