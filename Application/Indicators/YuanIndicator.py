@@ -101,7 +101,7 @@ class YuanIndicator(Connector):
                     return ''
             # elif slope > 0 and trend == 'down':
             elif slope > 0:
-                if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
+                if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and isnt_same_as_previous_close:
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** SELL!')
                     return 'sell'
