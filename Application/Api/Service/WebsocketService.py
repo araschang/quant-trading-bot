@@ -3,9 +3,11 @@ import datetime
 import pandas as pd
 import json
 import os
+from Application.Api.Service.MongoDBService import MongoDBService
 class WebsocketService(object):
     def __init__(self):
-        pass
+        self.mongo = MongoDBService()
+        self._livePriceConn = self.mongo._livePriceConn()
     
     @classmethod
     def binanceWebsocket(self, currency, timeframe):
@@ -38,8 +40,9 @@ class WebsocketService(object):
             h = json_result['k']['h']
             c = json_result['k']['c']
             v = json_result['k']['v']
+            time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             data = {
-                'time': [str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))],
+                'time': [time],
                 'open': [float(o)],
                 'high': [float(h)],
                 'low': [float(l)],
@@ -47,8 +50,20 @@ class WebsocketService(object):
                 'volume': [float(v)],
             }
             df = pd.DataFrame(data)
-            df.to_csv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'Indicators', 'BTCUSDT_LIVE.csv'))
             print(df)
+
+            data_mongo = {
+                'time': time,
+                'open': float(o),
+                'high': float(h),
+                'low': float(l),
+                'close': float(c),
+                'volume': float(v),
+            }
+            self._livePriceConn.insert_one(data_mongo)
+            cursor = self._livePriceConn.find().sort('time', 1)
+            self._livePriceConn.delete_one(cursor[0])
+
         except Exception as e:
             print(e)
     

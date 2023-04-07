@@ -78,7 +78,8 @@ def job_trade(member_df):
 
 def binance_websocket():
     try:
-        WebsocketService.binanceWebsocket('btcusdt', '3m')
+        websocket = WebsocketService()
+        websocket.binanceWebsocket('btcusdt', '3m')
     except Exception as e:
         logging.error('An error occurred: %s', e, exc_info=True)
         print(e)
