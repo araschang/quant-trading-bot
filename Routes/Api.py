@@ -11,6 +11,7 @@ from Application.Api.Controller.WebsocketController import WebsocketController
 from Application.Api.Controller.IndicatorController import IndicatorController
 from Application.Indicators.YuanIndicator import YuanIndicator
 from Application.Api.Service.WebsocketService import WebsocketService
+from Application.Api.Service.MongoDBService import MongoDBService
 
 app = Flask(__name__)
 api = Api(app)
@@ -20,6 +21,9 @@ logging.basicConfig(filename='quantlog.log', level=logging.ERROR, format='%(asct
 stable_check_webhook = config['Discord']['stable_check']
 api_key = config['Binance']['api_key']
 api_secret = config['Binance']['api_secret']
+mongo = MongoDBService()
+query = {'STRATEGY': 'YuanCopyTrade'}
+member = list(mongo._memberInfoConn().find(query))
 
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
@@ -39,18 +43,17 @@ def job_eth_signal():
     print('JOB "ETH DETECT" DONE')
     return signal, now_price, ohlcv
 
-def job_trade():
-    member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
+def job_trade(member_df):
     btc_signal, btc_price, btc_ohlcv = job_bitcoin_signal()
     eth_signal, eth_price, eth_ohlcv = job_eth_signal()
     for i in range(len(member_df)):
-        api_key = member_df['API_KEY'].iloc[i]
-        api_secret = member_df['API_SECRET'].iloc[i]
-        exchange = member_df['EXCHANGE'].iloc[i]
-        symbol = member_df['SYMBOL'].iloc[i]
-        assetPercent = float(member_df['ASSET_PERCENT'].iloc[i])
-        stoplossPercent = float(member_df['STOPLOSS_PERCENT'].iloc[i])
-        strategy = member_df['STRATEGY'].iloc[i]
+        api_key = member_df[i]['API_KEY']
+        api_secret = member_df[i]['API_SECRET']
+        exchange = member_df[i]['EXCHANGE']
+        symbol = member_df[i]['SYMBOL']
+        assetPercent = float(member_df[i]['ASSET_PERCENT'])
+        stoplossPercent = float(member_df[i]['STOPLOSS_PERCENT'])
+        strategy = member_df[i]['STRATEGY']
 
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
 
