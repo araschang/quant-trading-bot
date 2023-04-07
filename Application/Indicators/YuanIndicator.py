@@ -86,11 +86,14 @@ class YuanIndicator(Connector):
             except Exception as e:
                 ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
-            
-            index = list(close_df[(close_df['API_KEY'] == self.api_key) & (close_df['SYMBOL'] == self.symbol) & (close_df['STRATEGY'] == self.strategy)].index)[0]
+            try:
+                index = list(close_df[(close_df['API_KEY'] == self.api_key) & (close_df['SYMBOL'] == self.symbol) & (close_df['STRATEGY'] == self.strategy)].index)[0]
+                isnt_same_as_previous_close = (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1]))
+            except:
+                isnt_same_as_previous_close = True
             if slope <= 0:
             # if slope <= 0 and trend == 'up':
-                if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
+                if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and isnt_same_as_previous_close:
                     ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                     # self.discord.sendMessage(f'**{symbol}** BUY!')
                     return 'buy'
