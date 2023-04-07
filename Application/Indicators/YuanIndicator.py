@@ -87,7 +87,7 @@ class YuanIndicator(Connector):
                 ohlcv_df.to_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
                 check_df = pd.read_csv(os.path.join(os.path.dirname(__file__), f'Yuan{symbol}.csv'))
             
-            index = list(close_df[(df['API_KEY'] == self.api_key) & (close_df['SYMBOL'] == self.symbol) & (close_df['STRATEGY'] == self.strategy)].index)[0]
+            index = list(close_df[(close_df['API_KEY'] == self.api_key) & (close_df['SYMBOL'] == self.symbol) & (close_df['STRATEGY'] == self.strategy)].index)[0]
             if slope <= 0:
             # if slope <= 0 and trend == 'up':
                 if (str(check_df['time'].iloc[-1]) != str(ohlcv_df['time'].iloc[-1])) and (str(close_df['TIME'].iloc[index]) != str(ohlcv_df['time'].iloc[-1])):
