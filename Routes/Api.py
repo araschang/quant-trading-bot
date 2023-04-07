@@ -27,7 +27,7 @@ member = list(mongo._memberInfoConn().find(query))
 
 def job_bitcoin_signal():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('5m')
+    ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
     now_price = float(ohlcv['close'].iloc[-1])
@@ -36,7 +36,7 @@ def job_bitcoin_signal():
 
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
-    ohlcv = indicator.getOHLCV('5m')
+    ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
     now_price = float(ohlcv['close'].iloc[-1])

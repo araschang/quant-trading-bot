@@ -4,7 +4,7 @@ import pandas as pd
 import json
 import os
 from Application.Api.Service.MongoDBService import MongoDBService
-class WebsocketService(object):
+class WebsocketService():
     def __init__(self):
         self.mongo = MongoDBService()
         self._livePriceConn = self.mongo._livePriceConn()
@@ -19,7 +19,6 @@ class WebsocketService(object):
                                     on_pong=self.on_pong)
         ws.run_forever(ping_interval=25, ping_timeout=10) # 25秒發一次ping，10秒沒收到pong就斷線，官方api文件說ping_interval設25秒可以避免斷線
     
-    @classmethod
     def okxWebsocket(self):
         socket = 'wss://ws.okx.com:8443/ws/v5/public'
         wsapp = websocket.WebSocketApp(socket,
@@ -58,6 +57,7 @@ class WebsocketService(object):
                 'close': float(c),
                 'volume': float(v),
             }
+            
             self._livePriceConn.insert_one(data_mongo)
             cursor = self._livePriceConn.find().sort('time', 1)
             self._livePriceConn.delete_one(cursor[0])
@@ -65,7 +65,6 @@ class WebsocketService(object):
         except Exception as e:
             print(e)
     
-    @classmethod
     def okx_on_message(self, wsapp, message):
         try:
             json_result = json.loads(message)
