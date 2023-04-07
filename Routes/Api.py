@@ -45,7 +45,7 @@ def job_eth_signal():
 
 def job_trade(member_df):
     btc_signal, btc_price, btc_ohlcv = job_bitcoin_signal()
-    eth_signal, eth_price, eth_ohlcv = job_eth_signal()
+    # eth_signal, eth_price, eth_ohlcv = job_eth_signal()
     for i in range(len(member_df)):
         api_key = member_df[i]['API_KEY']
         api_secret = member_df[i]['API_SECRET']
@@ -62,10 +62,10 @@ def job_trade(member_df):
                 signal = btc_signal
                 now_price = btc_price
                 ohlcv = btc_ohlcv.copy()
-            elif symbol[:3] == 'ETH':
-                signal = eth_signal
-                now_price = eth_price
-                ohlcv = eth_ohlcv.copy()
+            # elif symbol[:3] == 'ETH':
+            #     signal = eth_signal
+            #     now_price = eth_price
+            #     ohlcv = eth_ohlcv.copy()
             indicator.checkIfThereIsStopLoss(now_price, ohlcv)
             indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
             indicator.checkIfNoPositionCancelOpenOrder()
@@ -88,21 +88,6 @@ def job_trend_detect():
     indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
     indicator.checkTrend()
     print('JOB "TREND DETECT" DONE')
-
-def job_check_if_no_position_then_cancel_open_order(): # for bybit
-    member_df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Application/Indicators', 'YuanMember.csv')))
-    for i in range(len(member_df)):
-        api_key = member_df['API_KEY'].iloc[i]
-        api_secret = member_df['API_SECRET'].iloc[i]
-        exchange = member_df['EXCHANGE'].iloc[i]
-        symbol = member_df['SYMBOL'].iloc[i]
-        strategy = member_df['STRATEGY'].iloc[i]
-        indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
-        try:
-            indicator.checkIfNoPositionCancelOpenOrder()
-        except Exception as e:
-            logging.error('An error occurred: %s', e, exc_info=True)
-    print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')
 
 def stable_check():
     webhook = SyncWebhook.from_url(stable_check_webhook)

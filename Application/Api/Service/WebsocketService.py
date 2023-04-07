@@ -1,3 +1,5 @@
+import sys
+sys.path.append('./')
 import websocket
 import datetime
 import pandas as pd
@@ -103,5 +105,6 @@ class WebsocketService():
         print("Got a pong! No need to respond")
 
 if __name__ == "__main__":
-    WebsocketService.binanceWebsocket('btcusdt', '3m')
+    web = WebsocketService()
+    web.binanceWebsocket('btcusdt', '3m')
     # print(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'Indicators', 'BTCUSDT_LIVE.csv'))
