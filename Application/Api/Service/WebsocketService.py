@@ -9,7 +9,6 @@ class WebsocketService(object):
         self.mongo = MongoDBService()
         self._livePriceConn = self.mongo._livePriceConn()
     
-    @classmethod
     def binanceWebsocket(self, currency, timeframe):
         websocket.enableTrace(False)
         socket = f'wss://fstream.binance.com/ws/{currency}@kline_{timeframe}'
@@ -31,7 +30,6 @@ class WebsocketService(object):
                                     on_pong=self.on_pong)
         wsapp.run_forever(ping_interval=25, ping_timeout=10)
 
-    @classmethod
     def binance_on_message(self, ws, message):
         try:
             json_result = json.loads(message)
@@ -96,15 +94,12 @@ class WebsocketService(object):
             }]
         }))
 
-    @classmethod
     def on_error(self, ws, error):
         print(error)
 
-    @classmethod
     def on_close(self, close_msg):
         print("### closed ###" + close_msg)
 
-    @classmethod
     def on_pong(self, wsapp, message):
         print("Got a pong! No need to respond")
 
