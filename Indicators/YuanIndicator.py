@@ -79,18 +79,12 @@ class YuanIndicator(Connector):
 
         if ohlcv_df['VOLUME'].iloc[-1] >= mean_volume * 10:
             slope = ohlcv_df['CLOSE'].iloc[-1] - ohlcv_df['CLOSE'].iloc[-10]
-            trend = self.getTrend()
+            # trend = self.getTrend()
             try:
                 last_close = self.getLastTradeData()[-1]
             except:
                 self.insertLastTradeData(123)
                 last_close = self.getLastTradeData()[-1]
-            
-            try:
-                check = self.getLastSignalTime()
-            except:
-                self.insertLastSignalTime(123)
-                check = self.getLastSignalTime()
 
             now_time = int(ohlcv_df['TIME'].iloc[-1])
             last_close_time = int(last_close['TIME'])
@@ -98,15 +92,13 @@ class YuanIndicator(Connector):
 
             if slope <= 0:
             # if slope <= 0 and trend == 'up':
-                if (check != now_time) and isnt_same_as_previous_close:
-                    self.insertLastSignalTime(now_time)
+                if isnt_same_as_previous_close:
                     return 'buy'
                 else:
                     return ''
             # elif slope > 0 and trend == 'down':
             elif slope > 0:
-                if (check != now_time) and isnt_same_as_previous_close:
-                    self.insertLastSignalTime(now_time)
+                if isnt_same_as_previous_close:
                     return 'sell'
                 else:
                     return ''
