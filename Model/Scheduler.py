@@ -4,7 +4,7 @@ from Base.Service.DiscordService import DiscordService
 from datetime import datetime
 import logging
 
-logging.basicConfig(filename='modellog.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(filename='quantlog.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 2})
 
 def binance_btc_websocket():
