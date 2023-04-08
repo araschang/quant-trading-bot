@@ -241,7 +241,7 @@ class YuanIndicator(Connector):
                     data = {'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'TIME': str(ohlcv['time'].iloc[-1])}
                     db.insert_one(data)
                     cursor = db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy})
-                    if cursor.count() > 1:
+                    if len(list(cursor)) > 1:
                         db.delete_one(cursor[0])
                     self.discord.sendMessage(f'**{self.symbol}** {self.name} Position Closed.')
     
@@ -302,14 +302,14 @@ class YuanIndicator(Connector):
             trend = {'symbol': self.symbol, 'trend': 'down'}
             db.insert_one(trend)
             cursor = db.find({'symbol': self.symbol})
-            if cursor.count() > 1:
+            if len(list(cursor)) > 1:
                 db.delete_one(cursor[0])
 
         else:
             trend = {'symbol': self.symbol, 'trend': 'up'}
             db.insert_one(trend)
             cursor = db.find({'symbol': self.symbol})
-            if cursor.count() > 1:
+            if len(list(cursor)) > 1:
                 db.delete_one(cursor[0])
 
 
@@ -360,7 +360,7 @@ class YuanIndicator(Connector):
         db = self.mongo._lastSignalConn()
         db.insert_one({'STRATEGY': self.strategy, 'TIME': time})
         cursor = db.find({'STRATEGY': self.strategy})
-        if cursor.count() > 1:
+        if len(list(cursor)) > 1:
             db.delete_one(cursor[0])
     
     def ATR(self, DF, n=14):
