@@ -46,13 +46,13 @@ class YuanIndicator(Connector):
         Return a dataframe with OHLCV data
         '''
         ohlcv = self.exchange.fetch_ohlcv(self.symbol, timeframe, limit=100)
-        df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-        df['open'] = df['open'].astype(float)
-        df['high'] = df['high'].astype(float)
-        df['low'] = df['low'].astype(float)
-        df['close'] = df['close'].astype(float)
-        df['volume'] = df['volume'].astype(float)
-        df['time'] = pd.to_datetime(df['time'], unit='ms')
+        df = pd.DataFrame(ohlcv, columns=['TIME', 'OPEN', 'HIGH', 'LOW', 'CLOSE', 'VOLUME'])
+        df['OPEN'] = df['OPEN'].astype(float)
+        df['HIGH'] = df['HIGH'].astype(float)
+        df['LOW'] = df['LOW'].astype(float)
+        df['CLOSE'] = df['CLOSE'].astype(float)
+        df['VOLUME'] = df['VOLUME'].astype(float)
+        df['TIME'] = pd.to_datetime(df['TIME'], unit='ms')
         return df
     
     def cleanData2GenerateMeanVolume(self, ohlcv_df):
@@ -60,7 +60,7 @@ class YuanIndicator(Connector):
         Clean data to generate mean volume
         Return a dataframe with mean volume
         '''
-        volume = ohlcv_df['volume']
+        volume = ohlcv_df['VOLUME']
         Q1 = volume.quantile(0.25)
         Q3 = volume.quantile(0.75)
         IQR = Q3 - Q1
@@ -78,13 +78,16 @@ class YuanIndicator(Connector):
         elif self.exchange_name == 'bybit':
             symbol = self.symbol
 
-        if ohlcv_df['volume'].iloc[-1] >= mean_volume * 10:
-            slope = ohlcv_df['close'].iloc[-1] - ohlcv_df['close'].iloc[-10]
+        if ohlcv_df['VOLUME'].iloc[-1] >= mean_volume * 10:
+            slope = ohlcv_df['CLOSE'].iloc[-1] - ohlcv_df['CLOSE'].iloc[-10]
             trend = self.getTrend()
             last_close = self.getLastTradeData()[-1]
-            check = self.getLastSignalTime()
-            
-            now_time = str(ohlcv_df['time'].iloc[-1])
+            now_time = str(ohlcv_df['TIME'].iloc[-1])
+            try:
+                check = self.getLastSignalTime()
+            except:
+                self.insertLastSignalTime(now_time)
+                check = self.getLastSignalTime()
             last_close_time = str(last_close['TIME'])
             isnt_same_as_previous_close = (now_time != last_close_time)
 
@@ -129,12 +132,12 @@ class YuanIndicator(Connector):
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
         amount = round(wallet_balance * assetPercent / now_price, 3)
         self.exchange.create_market_order(self.symbol, side, amount)
-        self.discord.sendMessage(f'**{self.symbol}** {self.name} {side.upper()} {amount} at {now_price}')
         if self.exchange_name == 'binance':
             now_price = float(self.exchange.fetch_positions([self.symbol])[0]['info']['entryPrice'])
         ohlcv['ATR'] = self.ATR(ohlcv, 14)
         atr = float(ohlcv['ATR'].iloc[-1])
         self.insertTransationData(side, amount, now_price, atr, 0)
+        self.discord.sendMessage(f'**{self.symbol}** {self.name} {side.upper()} {amount} at {now_price}')
 
         if side == 'buy':
             stop_loss_side = 'sell'
@@ -149,7 +152,6 @@ class YuanIndicator(Connector):
             if self.exchange_name == 'binance':
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
-            return 'Open position success'
         except Exception:
             self.exchange.cancel_all_orders(self.symbol)
             now_price = self.getLivePrice()
@@ -163,7 +165,6 @@ class YuanIndicator(Connector):
             if self.exchange_name == 'binance':
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
-            return 'Open position success'
     
     def changeStopLoss(self, price):
         '''
@@ -238,7 +239,7 @@ class YuanIndicator(Connector):
                 count = len(self.getTransactionData())
                 if count > 0:
                     db = self.mongo._lastTradeConn()
-                    data = {'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'TIME': str(ohlcv['time'].iloc[-1])}
+                    data = {'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'TIME': str(ohlcv['TIME'].iloc[-1])}
                     db.insert_one(data)
                     cursor = list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
                     if len(cursor) > 1:
@@ -295,20 +296,20 @@ class YuanIndicator(Connector):
         Return a dataframe with trend
         '''
         ohlcv_df = self.getOHLCV('4h')
-        ohlcv_df['short_ma'] = ohlcv_df['close'].ewm(com=20, min_periods=20).mean()
-        ohlcv_df['long_ma'] = ohlcv_df['close'].ewm(com=40, min_periods=40).mean()
+        ohlcv_df['SHORT_MA'] = ohlcv_df['CLOSE'].ewm(com=20, min_periods=20).mean()
+        ohlcv_df['LONG_MA'] = ohlcv_df['CLOSE'].ewm(com=40, min_periods=40).mean()
         db = self.mongo._trendConn()
-        if ohlcv_df['short_ma'].iloc[-1] < ohlcv_df['long_ma'].iloc[-1]:
-            trend = {'symbol': self.symbol, 'trend': 'down'}
+        if ohlcv_df['SHORT_MA'].iloc[-1] < ohlcv_df['LONG_MA'].iloc[-1]:
+            trend = {'SYMBOL': self.symbol, 'TREND': 'down'}
             db.insert_one(trend)
-            cursor = list(db.find({'symbol': self.symbol}))
+            cursor = list(db.find({'SYMBOL': self.symbol}))
             if len(cursor) > 1:
                 db.delete_one({'_id': cursor[0]['_id']})
 
         else:
-            trend = {'symbol': self.symbol, 'trend': 'up'}
+            trend = {'SYMBOL': self.symbol, 'TREND': 'up'}
             db.insert_one(trend)
-            cursor = list(db.find({'symbol': self.symbol}))
+            cursor = list(db.find({'SYMBOL': self.symbol}))
             if len(cursor) > 1:
                 db.delete_one({'_id': cursor[0]['_id']})
 
@@ -342,7 +343,7 @@ class YuanIndicator(Connector):
     def getLivePrice(self):
         db = self.mongo._livePriceConn()
         symbol = self.symbol.replace('/', '')
-        return float(list(db.find({'symbol': symbol}))[-1]['close'])
+        return float(list(db.find({'SYMBOL': symbol}))[-1]['CLOSE'])
     
     def getLastTradeData(self):
         db = self.mongo._lastTradeConn()
@@ -350,7 +351,7 @@ class YuanIndicator(Connector):
     
     def getTrend(self):
         db = self.mongo._trendConn()
-        return str(list(db.find({'symbol': self.symbol}))[-1]['trend'])
+        return str(list(db.find({'SYMBOL': self.symbol}))[-1]['TREND'])
     
     def getLastSignalTime(self):
         db = self.mongo._lastSignalConn()

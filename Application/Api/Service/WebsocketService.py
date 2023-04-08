@@ -42,29 +42,29 @@ class WebsocketService():
             v = json_result['k']['v']
             time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             data = {
-                'symbol': [s],
-                'time': [time],
-                'open': [float(o)],
-                'high': [float(h)],
-                'low': [float(l)],
-                'close': [float(c)],
-                'volume': [float(v)],
+                'SYMBOL': [s],
+                'TIME': [time],
+                'OPEN': [float(o)],
+                'HIGH': [float(h)],
+                'LOW': [float(l)],
+                'CLOSE': [float(c)],
+                'VOLUME': [float(v)],
             }
             df = pd.DataFrame(data)
             print(df)
 
             data_mongo = {
-                'symbol': s,
-                'time': time,
-                'open': float(o),
-                'high': float(h),
-                'low': float(l),
-                'close': float(c),
-                'volume': float(v),
+                'SYMBOL': s,
+                'TIME': time,
+                'OPEN': float(o),
+                'HIGH': float(h),
+                'LOW': float(l),
+                'CLOSE': float(c),
+                'VOLUME': float(v),
             }
             
             self._livePriceConn.insert_one(data_mongo)
-            cursor = list(self._livePriceConn.find({'symbol': s}))
+            cursor = list(self._livePriceConn.find({'SYMBOL': s}))
             if len(cursor) > 1:
                 self._livePriceConn.delete_one({'_id': cursor[0]['_id']})
 

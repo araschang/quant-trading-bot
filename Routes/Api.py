@@ -24,7 +24,7 @@ query = {'STRATEGY': 'YuanCopyTrade'}
 member = list(mongo._memberInfoConn().find(query))
 
 def job_bitcoin_signal():
-    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'Yuan')
+    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'YuanCopyTrade')
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
@@ -32,7 +32,7 @@ def job_bitcoin_signal():
     return signal, ohlcv
 
 def job_eth_signal():
-    indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
+    indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'YuanCopyTrade')
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
