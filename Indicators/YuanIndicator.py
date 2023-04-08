@@ -52,7 +52,6 @@ class YuanIndicator(Connector):
         df['CLOSE'] = df['CLOSE'].astype(float)
         df['VOLUME'] = df['VOLUME'].astype(float)
         df['TIME'] = df['TIME'].astype(int)
-        print(df)
         return df
     
     def cleanData2GenerateMeanVolume(self, ohlcv_df):
@@ -82,13 +81,13 @@ class YuanIndicator(Connector):
             slope = ohlcv_df['CLOSE'].iloc[-1] - ohlcv_df['CLOSE'].iloc[-10]
             trend = self.getTrend()
             last_close = self.getLastTradeData()[-1]
-            now_time = str(ohlcv_df['TIME'].iloc[-1])
+            now_time = int(ohlcv_df['TIME'].iloc[-1])
             try:
                 check = self.getLastSignalTime()
             except:
                 self.insertLastSignalTime(now_time)
                 check = self.getLastSignalTime()
-            last_close_time = str(last_close['TIME'])
+            last_close_time = int(last_close['TIME'])
             isnt_same_as_previous_close = (now_time != last_close_time)
 
             if slope <= 0:
@@ -239,7 +238,7 @@ class YuanIndicator(Connector):
                 count = len(self.getTransactionData())
                 if count > 0:
                     db = self.mongo._lastTradeConn()
-                    data = {'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'TIME': str(ohlcv['TIME'].iloc[-1])}
+                    data = {'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'TIME': int(ohlcv['TIME'].iloc[-1])}
                     db.insert_one(data)
                     cursor = list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
                     if len(cursor) > 1:
@@ -355,7 +354,7 @@ class YuanIndicator(Connector):
     
     def getLastSignalTime(self):
         db = self.mongo._lastSignalConn()
-        return str(list(db.find({'STRATEGY': self.strategy}))[0]['TIME'])
+        return int(list(db.find({'STRATEGY': self.strategy}))[0]['TIME'])
     
     def insertLastSignalTime(self, time):
         db = self.mongo._lastSignalConn()
