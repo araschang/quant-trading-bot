@@ -65,8 +65,9 @@ class WebsocketService():
             
             self._livePriceConn.insert_one(data_mongo)
             cursor = self._livePriceConn.find({'symbol': s})
-            if len(list(cursor)) > 1:
-                self._livePriceConn.delete_one(cursor[0])
+            cursor_list = list(cursor)
+            if len(cursor_list) > 1:
+                self._livePriceConn.delete_one({'_id': cursor_list[0]['_id']})
 
         except Exception as e:
             print(e)
