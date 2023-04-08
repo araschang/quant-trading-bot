@@ -64,7 +64,8 @@ class WebsocketService():
             }
             
             self._livePriceConn.insert_one(data_mongo)
-            cursor = self._livePriceConn.find({'symbol': s}).sort('time', 1)
+            cursor = self._livePriceConn.find({'symbol': s})
+            cursor.sort('time', 1)
             if len(list(cursor)) > 1:
                 self._livePriceConn.delete_one(cursor[0])
 
