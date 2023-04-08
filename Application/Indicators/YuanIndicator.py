@@ -240,9 +240,9 @@ class YuanIndicator(Connector):
                     db = self.mongo._lastTradeConn()
                     data = {'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'TIME': str(ohlcv['time'].iloc[-1])}
                     db.insert_one(data)
-                    cursor = db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy})
-                    if len(list(cursor)) > 1:
-                        db.delete_one(cursor[0])
+                    cursor = list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
+                    if len(cursor) > 1:
+                        db.delete_one({'_id': cursor[0]['_id']})
                     self.discord.sendMessage(f'**{self.symbol}** {self.name} Position Closed.')
     
                 self.deleteTransationData()
@@ -301,16 +301,16 @@ class YuanIndicator(Connector):
         if ohlcv_df['short_ma'].iloc[-1] < ohlcv_df['long_ma'].iloc[-1]:
             trend = {'symbol': self.symbol, 'trend': 'down'}
             db.insert_one(trend)
-            cursor = db.find({'symbol': self.symbol})
-            if len(list(cursor)) > 1:
-                db.delete_one(cursor[0])
+            cursor = list(db.find({'symbol': self.symbol}))
+            if len(cursor) > 1:
+                db.delete_one({'_id': cursor[0]['_id']})
 
         else:
             trend = {'symbol': self.symbol, 'trend': 'up'}
             db.insert_one(trend)
-            cursor = db.find({'symbol': self.symbol})
-            if len(list(cursor)) > 1:
-                db.delete_one(cursor[0])
+            cursor = list(db.find({'symbol': self.symbol}))
+            if len(cursor) > 1:
+                db.delete_one({'_id': cursor[0]['_id']})
 
 
     def insertTransationData(self, side, amount, price, ATR, stoploss_stage):
@@ -359,9 +359,9 @@ class YuanIndicator(Connector):
     def insertLastSignalTime(self, time):
         db = self.mongo._lastSignalConn()
         db.insert_one({'STRATEGY': self.strategy, 'TIME': time})
-        cursor = db.find({'STRATEGY': self.strategy})
-        if len(list(cursor)) > 1:
-            db.delete_one(cursor[0])
+        cursor = list(db.find({'STRATEGY': self.strategy}))
+        if len(cursor) > 1:
+            db.delete_one({'_id': cursor[0]['_id']})
     
     def ATR(self, DF, n=14):
         df = DF.copy()
