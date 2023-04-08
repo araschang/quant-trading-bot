@@ -51,7 +51,8 @@ class YuanIndicator(Connector):
         df['LOW'] = df['LOW'].astype(float)
         df['CLOSE'] = df['CLOSE'].astype(float)
         df['VOLUME'] = df['VOLUME'].astype(float)
-        df['TIME'] = pd.to_datetime(df['TIME'], unit='ms')
+        df['TIME'] = df['TIME'].astype(int)
+        print(df)
         return df
     
     def cleanData2GenerateMeanVolume(self, ohlcv_df):

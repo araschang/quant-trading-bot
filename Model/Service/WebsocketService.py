@@ -34,32 +34,32 @@ class WebsocketService():
         try:
             json_result = json.loads(message)
             s = json_result['s']
-            o = json_result['k']['o']
-            l = json_result['k']['l']
-            h = json_result['k']['h']
-            c = json_result['k']['c']
-            v = json_result['k']['v']
-            time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            t = int(json_result['k']['t'])
+            o = float(json_result['k']['o'])
+            l = float(json_result['k']['l'])
+            h = float(json_result['k']['h'])
+            c = float(json_result['k']['c'])
+            v = float(json_result['k']['v'])
             data = {
                 'SYMBOL': [s],
-                'TIME': [time],
-                'OPEN': [float(o)],
-                'HIGH': [float(h)],
-                'LOW': [float(l)],
-                'CLOSE': [float(c)],
-                'VOLUME': [float(v)],
+                'TIME': [t],
+                'OPEN': [o],
+                'HIGH': [h],
+                'LOW': [l],
+                'CLOSE': [c],
+                'VOLUME': [v],
             }
             df = pd.DataFrame(data)
             print(df)
 
             data_mongo = {
                 'SYMBOL': s,
-                'TIME': time,
-                'OPEN': float(o),
-                'HIGH': float(h),
-                'LOW': float(l),
-                'CLOSE': float(c),
-                'VOLUME': float(v),
+                'TIME': t,
+                'OPEN': o,
+                'HIGH': h,
+                'LOW': l,
+                'CLOSE': c,
+                'VOLUME': v,
             }
             
             self._livePriceConn.insert_one(data_mongo)
