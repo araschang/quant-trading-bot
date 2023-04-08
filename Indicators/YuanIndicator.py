@@ -80,28 +80,16 @@ class YuanIndicator(Connector):
         if ohlcv_df['VOLUME'].iloc[-1] >= mean_volume * 10:
             slope = ohlcv_df['CLOSE'].iloc[-1] - ohlcv_df['CLOSE'].iloc[-10]
             # trend = self.getTrend()
-            try:
-                last_close = self.getLastTradeData()[-1]
-            except:
-                self.insertLastTradeData(123)
-                last_close = self.getLastTradeData()[-1]
-
-            now_time = int(ohlcv_df['TIME'].iloc[-1])
-            last_close_time = int(last_close['TIME'])
-            isnt_same_as_previous_close = (now_time != last_close_time)
 
             if slope <= 0:
             # if slope <= 0 and trend == 'up':
-                if isnt_same_as_previous_close:
-                    return 'buy'
-                else:
-                    return ''
+                return 'buy'
+
             # elif slope > 0 and trend == 'down':
             elif slope > 0:
-                if isnt_same_as_previous_close:
-                    return 'sell'
-                else:
-                    return ''
+                return 'sell'
+            else:
+                return ''
     
     def openPosition(self, ohlcv, side, assetPercent, leverage: int, now_price: float, stoplossPercent) -> None:
         '''
@@ -109,6 +97,17 @@ class YuanIndicator(Connector):
         Return a dataframe with open position
         '''
         if side != 'buy' and side != 'sell':
+            return
+        
+        try:
+            last_close = self.getLastTradeData()[-1]
+        except:
+            self.insertLastTradeData(123)
+            last_close = self.getLastTradeData()[-1]
+        now_time = int(ohlcv['TIME'].iloc[-1])
+        last_close_time = int(last_close['TIME'])
+        isnt_same_as_previous_close = (now_time != last_close_time)
+        if not isnt_same_as_previous_close:
             return
         
         transaction = self.getTransactionData()
