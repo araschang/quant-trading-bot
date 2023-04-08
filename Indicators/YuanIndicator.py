@@ -370,9 +370,9 @@ class YuanIndicator(Connector):
     
     def ATR(self, DF, n=14):
         df = DF.copy()
-        df['H-L'] = df['high'] - df['low']
-        df['H-PC'] = abs(df['high'] - df['close'].shift(1))
-        df['L-PC'] = abs(df['low'] - df['close'].shift(1))
+        df['H-L'] = df['HIGH'] - df['LOW']
+        df['H-PC'] = abs(df['HIGH'] - df['CLOSE'].shift(1))
+        df['L-PC'] = abs(df['LOW'] - df['CLOSE'].shift(1))
         df['TR'] = df[['H-L', 'H-PC', 'L-PC']].max(axis=1, skipna=False)
         df['ATR'] = df['TR'].ewm(span=n, min_periods=n).mean()
         return df['ATR']

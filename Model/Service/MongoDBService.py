@@ -13,10 +13,6 @@ class MongoDBService(object):
         db = self.client['quant']
         return db['member_info']
     
-    def _signalTimeConn(self):
-        db = self.client['quant']
-        return db['signal_time']
-    
     def _lastTradeConn(self):
         db = self.client['quant']
         return db['last_trade']
