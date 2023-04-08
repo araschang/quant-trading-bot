@@ -16,8 +16,4 @@ class DiscordService(Connector):
     def sendMessage(self, message):
         webhook = SyncWebhook.from_url(self.webhook)
         webhook.send(message)
-
-if __name__ == '__main__':
-    discordService = DiscordService()
-    discordService.sendMessage("Hello World!")
     

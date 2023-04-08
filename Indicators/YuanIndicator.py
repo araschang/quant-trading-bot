@@ -1,9 +1,8 @@
 import pandas as pd
 import ccxt
-import os
 from Base.ConfigReader import Config
-from Application.Api.Service.DiscordService import DiscordService
-from Application.Api.Service.MongoDBService import MongoDBService
+from Base.Service.DiscordService import DiscordService
+from Model.Service.MongoDBService import MongoDBService
 
 class Connector(object):
     def __init__(self):

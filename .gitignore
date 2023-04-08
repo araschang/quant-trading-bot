@@ -14,5 +14,4 @@ Application/Api/Service/__pycache__/
 Application/Api/Indicators/__pycache__/
 memo
 quant.pem
-aws.pem
 ssh.sh

@@ -1,11 +1,10 @@
-import sys
-sys.path.append('./')
 import websocket
 import datetime
 import pandas as pd
 import json
-import os
-from Application.Api.Service.MongoDBService import MongoDBService
+from Model.Service.MongoDBService import MongoDBService
+
+
 class WebsocketService():
     def __init__(self):
         self.mongo = MongoDBService()

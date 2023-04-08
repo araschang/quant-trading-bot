@@ -1,4 +1,3 @@
-from Base.ConfigReader import Config
 from pymongo import MongoClient
 
 
