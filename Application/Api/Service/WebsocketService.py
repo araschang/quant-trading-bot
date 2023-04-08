@@ -34,6 +34,7 @@ class WebsocketService():
     def binance_on_message(self, ws, message):
         try:
             json_result = json.loads(message)
+            s = json_result['s']
             o = json_result['k']['o']
             l = json_result['k']['l']
             h = json_result['k']['h']
@@ -41,6 +42,7 @@ class WebsocketService():
             v = json_result['k']['v']
             time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             data = {
+                'symbol': [s],
                 'time': [time],
                 'open': [float(o)],
                 'high': [float(h)],
@@ -52,6 +54,7 @@ class WebsocketService():
             print(df)
 
             data_mongo = {
+                'symbol': s,
                 'time': time,
                 'open': float(o),
                 'high': float(h),
@@ -61,8 +64,9 @@ class WebsocketService():
             }
             
             self._livePriceConn.insert_one(data_mongo)
-            cursor = self._livePriceConn.find().sort('time', 1)
-            self._livePriceConn.delete_one(cursor[0])
+            cursor = self._livePriceConn.find({'symbol': s}).sort('time', 1)
+            if cursor.count() > 1:
+                self._livePriceConn.delete_one(cursor[0])
 
         except Exception as e:
             print(e)
@@ -80,7 +84,7 @@ class WebsocketService():
                 'volume': [float(result[5])],
             }
             df = pd.DataFrame(data)
-            df.to_csv('./Application/Api/Service/LivePrice/okx_btc.csv')
+            df.to_csv('./Application/Api/Service/LivePrice/okx_btc.csv') # need to be changed
             print(df)
         except Exception as e:
             print(e)

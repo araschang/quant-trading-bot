@@ -16,11 +16,3 @@ memo
 quant.pem
 aws.pem
 ssh.sh
-Application/Api/Service/LivePrice/binance_btc.csv
-Application/Api/Service/LivePrice/CryptoEX.csv
-Application/Indicators/YuanMember.csv
-Application/Indicators/YuanMemberForCopyTrade.csv
-Application/Indicators/YuanTransaction.csv
-Application/Indicators/YuanTransactionForCopyTrade.csv
-Application/Indicators/YuanClose.csv
-Application/Indicators/BTCUSDT_LIVE.csv

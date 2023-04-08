@@ -1,8 +1,6 @@
 from flask_restful import Api
 from flask import Flask
 from discord import SyncWebhook
-import pandas as pd
-import os
 import datetime
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -30,22 +28,20 @@ def job_bitcoin_signal():
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
-    now_price = float(ohlcv['close'].iloc[-1])
     print('JOB "BTC DETECT" DONE')
-    return signal, now_price, ohlcv
+    return signal, ohlcv
 
 def job_eth_signal():
     indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'Yuan')
     ohlcv = indicator.getOHLCV('3m')
     mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
     signal = indicator.checkSignal(mean_volume, ohlcv)
-    now_price = float(ohlcv['close'].iloc[-1])
     print('JOB "ETH DETECT" DONE')
-    return signal, now_price, ohlcv
+    return signal, ohlcv
 
 def job_trade(member_df):
-    btc_signal, btc_price, btc_ohlcv = job_bitcoin_signal()
-    # eth_signal, eth_price, eth_ohlcv = job_eth_signal()
+    btc_signal, btc_ohlcv = job_bitcoin_signal()
+    # eth_signal, eth_ohlcv = job_eth_signal()
     for i in range(len(member_df)):
         api_key = member_df[i]['API_KEY']
         api_secret = member_df[i]['API_SECRET']
@@ -60,14 +56,14 @@ def job_trade(member_df):
         try:
             if symbol[:3] == 'BTC':
                 signal = btc_signal
-                now_price = btc_price
+                now_price = indicator.getLivePrice()
                 ohlcv = btc_ohlcv.copy()
             # elif symbol[:3] == 'ETH':
             #     signal = eth_signal
-            #     now_price = eth_price
+            #     now_price = indicator.getLivePrice()
             #     ohlcv = eth_ohlcv.copy()
-            indicator.checkIfThereIsStopLoss(now_price, ohlcv)
             indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
+            indicator.checkIfThereIsStopLoss(now_price, ohlcv)
             indicator.checkIfNoPositionCancelOpenOrder()
         except Exception as e:
             logging.error('An error occurred: %s', e, exc_info=True)

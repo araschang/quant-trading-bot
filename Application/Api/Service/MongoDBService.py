@@ -22,3 +22,18 @@ class MongoDBService(object):
         db = self.client['quant']
         return db['last_trade']
     
+    def _transactionConn(self):
+        db = self.client['quant']
+        return db['transaction']
+    
+    def _positionConn(self):
+        db = self.client['quant']
+        return db['position']
+    
+    def _trendConn(self):
+        db = self.client['quant']
+        return db['trend']
+    
+    def _lastSignalConn(self):
+        db = self.client['quant']
+        return db['last_signal']
