@@ -80,13 +80,19 @@ class YuanIndicator(Connector):
         if ohlcv_df['VOLUME'].iloc[-1] >= mean_volume * 10:
             slope = ohlcv_df['CLOSE'].iloc[-1] - ohlcv_df['CLOSE'].iloc[-10]
             trend = self.getTrend()
-            last_close = self.getLastTradeData()[-1]
-            now_time = int(ohlcv_df['TIME'].iloc[-1])
+            try:
+                last_close = self.getLastTradeData()[-1]
+            except:
+                self.insertLastTradeData(123)
+                last_close = self.getLastTradeData()[-1]
+            
             try:
                 check = self.getLastSignalTime()
             except:
-                self.insertLastSignalTime(now_time)
+                self.insertLastSignalTime(123)
                 check = self.getLastSignalTime()
+
+            now_time = int(ohlcv_df['TIME'].iloc[-1])
             last_close_time = int(last_close['TIME'])
             isnt_same_as_previous_close = (now_time != last_close_time)
 
@@ -237,15 +243,9 @@ class YuanIndicator(Connector):
             else:
                 count = len(self.getTransactionData())
                 if count > 0:
-                    db = self.mongo._lastTradeConn()
-                    data = {'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'TIME': int(ohlcv['TIME'].iloc[-1])}
-                    db.insert_one(data)
-                    cursor = list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
-                    if len(cursor) > 1:
-                        db.delete_one({'_id': cursor[0]['_id']})
+                    self.insertLastTradeData(int(ohlcv['TIME'].iloc[-1]))
                     self.discord.sendMessage(f'**{self.symbol}** {self.name} Position Closed.')
-    
-                self.deleteTransationData()
+                    self.deleteTransationData()
                 self.exchange.cancel_all_orders(self.symbol)
     
     def checkIfNoPositionCancelOpenOrder(self):
@@ -360,6 +360,19 @@ class YuanIndicator(Connector):
         db = self.mongo._lastSignalConn()
         db.insert_one({'STRATEGY': self.strategy, 'TIME': time})
         cursor = list(db.find({'STRATEGY': self.strategy}))
+        if len(cursor) > 1:
+            db.delete_one({'_id': cursor[0]['_id']})
+    
+    def insertLastTradeData(self, time):
+        db = self.mongo._lastTradeConn()
+        data = {
+            'API_KEY': self.api_key,
+            'SYMBOL': self.symbol,
+            'STRATEGY': self.strategy,
+            'TIME': time
+        }
+        db.insert_one(data)
+        cursor = list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
         if len(cursor) > 1:
             db.delete_one({'_id': cursor[0]['_id']})
     
