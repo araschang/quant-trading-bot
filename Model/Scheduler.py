@@ -26,7 +26,7 @@ def binance_eth_websocket():
 
 def error_handler(job_id, exception):
     print(f'Error in job {job_id}: {exception}')
-    scheduler.add_job(globals()[job_id], 'date', id=job_id, run_date=datetime.now())
+    scheduler.add_job(safe_run, 'date', id=job_id, run_date=datetime.now(), args=[job_id])
 
 def safe_run(job_id):
     try:
