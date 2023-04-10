@@ -333,7 +333,7 @@ class YuanIndicator(Connector):
     def getLivePrice(self):
         db = self.mongo._livePriceConn()
         symbol = self.symbol.replace('/', '')
-        return float(list(db.find({'SYMBOL': symbol})).sort('TIME', -1).limit(1)[0]['CLOSE'])
+        return float(list(db.find({'SYMBOL': symbol}).sort('TIME', -1).limit(1))[0]['CLOSE'])
     
     def getLastTradeData(self):
         db = self.mongo._lastTradeConn()
