@@ -25,7 +25,7 @@ def binance_eth_websocket():
 
 def stable_check():
     webhook = DiscordService()
-    webhook.sendMessage('STABLE CHECK')
+    webhook.stableCheck()
 
 ### to-do: add ohlcv to mongodb
 

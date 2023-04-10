@@ -43,21 +43,31 @@ def job_trade(member_df):
 
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
 
+        
+        if symbol[:3] == 'BTC':
+            signal = btc_signal
+            now_price = indicator.getLivePrice()
+            ohlcv = btc_ohlcv.copy()
+        elif symbol[:3] == 'ETH':
+            signal = eth_signal
+            now_price = indicator.getLivePrice()
+            ohlcv = eth_ohlcv.copy()
         try:
-            if symbol[:3] == 'BTC':
-                signal = btc_signal
-                now_price = indicator.getLivePrice()
-                ohlcv = btc_ohlcv.copy()
-            elif symbol[:3] == 'ETH':
-                signal = eth_signal
-                now_price = indicator.getLivePrice()
-                ohlcv = eth_ohlcv.copy()
             indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
+        except Exception as e:
+            logging.error('An error occurred: %s', e, exc_info=True)
+            print(e)
+        try:
             indicator.checkIfThereIsStopLoss(now_price, ohlcv)
+        except Exception as e:
+            logging.error('An error occurred: %s', e, exc_info=True)
+            print(e)
+        try:
             indicator.checkIfNoPositionCancelOpenOrder()
         except Exception as e:
             logging.error('An error occurred: %s', e, exc_info=True)
             print(e)
+        
     print('JOB "TRADE" DONE')
     print('JOB "CHECK STOPLOSS" DONE')
     print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')

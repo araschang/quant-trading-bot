@@ -88,7 +88,6 @@ class WebsocketService():
         except Exception as e:
             print(e)
     
-    @classmethod
     def okx_on_open(self, wsapp):
         wsapp.send(json.dumps({
             "op": "subscribe",
@@ -106,8 +105,3 @@ class WebsocketService():
 
     def on_pong(self, wsapp, message):
         print("Got a pong! No need to respond")
-
-if __name__ == "__main__":
-    web = WebsocketService()
-    web.binanceWebsocket('btcusdt', '3m')
-    # print(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'Indicators', 'BTCUSDT_LIVE.csv'))

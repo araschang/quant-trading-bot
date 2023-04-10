@@ -260,12 +260,12 @@ class YuanIndicator(Connector):
                     amount = float(transaction['AMOUNT'])
                     if side == 'buy':
                         stop_side = 'sell'
-                        stop_loss_price = round(price - 2.5 * atr, 2)
-                        take_profit_price = round(price + 4 * atr, 2)
+                        stop_loss_price = round(price - 1.5 * atr, 2)
+                        take_profit_price = round(price + 5 * atr, 2)
                     else:
                         stop_side = 'buy'
-                        stop_loss_price = round(price + 2.5 * atr, 2)
-                        take_profit_price = round(price - 4 * atr, 2)
+                        stop_loss_price = round(price + 1.5 * atr, 2)
+                        take_profit_price = round(price - 5 * atr, 2)
                     self.exchange.create_market_order(self.symbol, stop_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
                     self.exchange.create_market_order(self.symbol, stop_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
 
