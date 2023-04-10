@@ -100,7 +100,7 @@ class WebsocketService():
     def on_error(self, ws, error):
         print(error)
 
-    def on_close(self, close_msg):
+    def on_close(self, close_msg, close_status_code, close_status):
         print("### closed ###" + close_msg)
 
     def on_pong(self, wsapp, message):

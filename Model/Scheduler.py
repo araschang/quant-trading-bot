@@ -1,4 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.events import EVENT_JOB_ERROR
 from Model.Service.WebsocketService import WebsocketService
 from Base.Service.DiscordService import DiscordService
 from datetime import datetime
@@ -23,13 +24,24 @@ def binance_eth_websocket():
         logging.error('An error occurred: %s', e, exc_info=True)
         print(e)
 
+def error_handler(job_id, exception):
+    print(f'Error in job {job_id}: {exception}')
+    scheduler.add_job(globals()[job_id], 'date', id=job_id, run_date=datetime.now())
+
+def safe_run(job_id):
+    try:
+        globals()[job_id]()
+    except Exception as e:
+        error_handler(job_id, e)
+
 def stable_check():
     webhook = DiscordService()
     webhook.stableCheck()
 
 ### to-do: add ohlcv to mongodb
-
-scheduler.add_job(binance_btc_websocket, 'interval', hours=24, next_run_time=datetime.now(), max_instances=2)
-scheduler.add_job(binance_eth_websocket, 'interval', hours=24, next_run_time=datetime.now(), max_instances=2)
+job1_id = 'binance_btc_websocket'
+job2_id = 'binance_eth_websocket'
+scheduler.add_job(safe_run, 'date', id=job1_id, run_date=datetime.now(), args=[job1_id])
+scheduler.add_job(safe_run, 'date', id=job2_id, run_date=datetime.now(), args=[job2_id])
 scheduler.add_job(stable_check, 'interval', hours=8)
 scheduler.start()
