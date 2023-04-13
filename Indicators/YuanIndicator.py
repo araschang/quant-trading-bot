@@ -77,7 +77,7 @@ class YuanIndicator(Connector):
         elif self.exchange_name == 'bybit':
             symbol = self.symbol
 
-        if ohlcv_df['VOLUME'].iloc[-1] >= mean_volume * 10:
+        if ohlcv_df['VOLUME'].iloc[-1] >= mean_volume * 9:
             slope = ohlcv_df['CLOSE'].iloc[-1] - ohlcv_df['CLOSE'].iloc[-10]
             # trend = self.getTrend()
 
