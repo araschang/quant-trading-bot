@@ -53,7 +53,7 @@ class YuanIndicator(Connector):
         df['VOLUME'] = df['VOLUME'].astype(float)
         df['TIME'] = df['TIME'].astype(int)
         return df
-    
+
     def cleanData2GenerateMeanVolume(self, ohlcv_df):
         '''
         Clean data to generate mean volume
@@ -65,7 +65,7 @@ class YuanIndicator(Connector):
         IQR = Q3 - Q1
         volume_mean = volume[(volume >= Q1 - 1.5 * IQR) & (volume <= Q3 + 1.5 * IQR)].mean()
         return volume_mean
-    
+
     def checkSignal(self, mean_volume, ohlcv_df):
         '''
         Check signal
@@ -90,7 +90,7 @@ class YuanIndicator(Connector):
                 return 'sell'
             else:
                 return ''
-    
+
     def openPosition(self, ohlcv, side, assetPercent, leverage: int, now_price: float, stoplossPercent) -> None:
         '''
         Open position
@@ -98,7 +98,7 @@ class YuanIndicator(Connector):
         '''
         if side != 'buy' and side != 'sell':
             return
-        
+
         try:
             last_close = self.getLastTradeData()[-1]
         except:
@@ -109,7 +109,7 @@ class YuanIndicator(Connector):
         isnt_same_as_previous_close = (now_time != last_close_time)
         if not isnt_same_as_previous_close:
             return
-        
+
         transaction = self.getTransactionData()
         if len(transaction) > 0:
             return
@@ -124,7 +124,7 @@ class YuanIndicator(Connector):
                 round_digit = 1
             elif self.symbol[:3] == 'ETH':
                 round_digit = 2
-        
+
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
         amount = round(wallet_balance * assetPercent / now_price, 3)
         self.exchange.create_market_order(self.symbol, side, amount)
@@ -138,11 +138,11 @@ class YuanIndicator(Connector):
         if side == 'buy':
             stop_loss_side = 'sell'
             stop_loss_price = round(now_price - (1.5 * atr), round_digit)
-            take_profit_price = round(now_price + (5 * atr), round_digit)
+            take_profit_price = round(now_price + (4 * atr), round_digit)
         else:
             stop_loss_side = 'buy'
             stop_loss_price = round(now_price + (1.5 * atr), round_digit)
-            take_profit_price = round(now_price - (5 * atr), round_digit)
+            take_profit_price = round(now_price - (4 * atr), round_digit)
 
         try:
             if self.exchange_name == 'binance':
@@ -153,15 +153,15 @@ class YuanIndicator(Connector):
             now_price = self.getLivePrice()
             if side == 'buy':
                 stop_loss_price = round(now_price - (1.5 * atr), round_digit)
-                take_profit_price = round(now_price + (5 * atr), round_digit)
+                take_profit_price = round(now_price + (4 * atr), round_digit)
             else:
                 stop_loss_price = round(now_price + (1.5 * atr), round_digit)
-                take_profit_price = round(now_price - (5 * atr), round_digit)
-            
+                take_profit_price = round(now_price - (4 * atr), round_digit)
+
             if self.exchange_name == 'binance':
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
-    
+
     def changeStopLoss(self, price):
         '''
         Change stop loss
@@ -174,7 +174,7 @@ class YuanIndicator(Connector):
             stop_loss_side = 'sell'
         else:
             stop_loss_side = 'buy'
-        
+
         for i in range(len(order_info)):
             if order_info[i]['info']['type'] == 'STOP_MARKET':
                 orderId = order_info[i]['info']['orderId']
@@ -182,7 +182,7 @@ class YuanIndicator(Connector):
 
         self.exchange.cancel_order(orderId, self.symbol)
         self.exchange.create_market_order(self.symbol, stop_loss_side, 1, params={'stopLossPrice': price, 'closePosition': True})
-        
+
     def checkIfThereIsStopLoss(self, now_price, ohlcv):
         if self.exchange_name == 'binance':
             position = self.exchange.fetch_positions([str(self.symbol)])
@@ -208,7 +208,7 @@ class YuanIndicator(Connector):
                     except:
                         self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
                     self.updateTransationData('STOPLOSS_STAGE', 2)
-                
+
             elif has_position < 0:
                 transaction = self.getTransactionData()[0]
                 price = float(transaction['PRICE'])
@@ -238,7 +238,7 @@ class YuanIndicator(Connector):
                     self.discord.sendMessage(f'**{self.symbol}** {self.name} Position Closed.')
                     self.deleteTransationData()
                 self.exchange.cancel_all_orders(self.symbol)
-    
+
     def checkIfNoPositionCancelOpenOrder(self):
         '''
         Check if no position cancel open order
@@ -261,11 +261,11 @@ class YuanIndicator(Connector):
                     if side == 'buy':
                         stop_side = 'sell'
                         stop_loss_price = round(price - 1.5 * atr, 2)
-                        take_profit_price = round(price + 5 * atr, 2)
+                        take_profit_price = round(price + 4 * atr, 2)
                     else:
                         stop_side = 'buy'
                         stop_loss_price = round(price + 1.5 * atr, 2)
-                        take_profit_price = round(price - 5 * atr, 2)
+                        take_profit_price = round(price - 4 * atr, 2)
                     self.exchange.create_market_order(self.symbol, stop_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
                     self.exchange.create_market_order(self.symbol, stop_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
 
@@ -317,7 +317,7 @@ class YuanIndicator(Connector):
             'STOPLOSS_STAGE': stoploss_stage
         }
         db.insert_one(data)
-    
+
     def deleteTransationData(self):
         db = self.mongo._transactionConn()
         db.delete_one({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy})
@@ -325,35 +325,35 @@ class YuanIndicator(Connector):
     def getTransactionData(self):
         db = self.mongo._transactionConn()
         return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
-    
+
     def updateTransationData(self, column, param):
         db = self.mongo._transactionConn()
         db.update_one({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}, {'$set': {f'{column}': param}})
-    
+
     def getLivePrice(self):
         db = self.mongo._livePriceConn()
         symbol = self.symbol.replace('/', '')
         return float(list(db.find({'SYMBOL': symbol}).sort('TIME', -1).limit(1))[0]['CLOSE'])
-    
+
     def getLastTradeData(self):
         db = self.mongo._lastTradeConn()
         return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}).sort('TIME', -1).limit(1))
-    
+
     def getTrend(self):
         db = self.mongo._trendConn()
         return str(list(db.find({'SYMBOL': self.symbol}))[-1]['TREND'])
-    
+
     def getLastSignalTime(self):
         db = self.mongo._lastSignalConn()
         return int(list(db.find({'STRATEGY': self.strategy}))[0]['TIME'])
-    
+
     def insertLastSignalTime(self, time):
         db = self.mongo._lastSignalConn()
         db.insert_one({'STRATEGY': self.strategy, 'TIME': time})
         cursor = list(db.find({'STRATEGY': self.strategy}))
         if len(cursor) > 1:
             db.delete_one({'_id': cursor[0]['_id']})
-    
+
     def insertLastTradeData(self, time):
         db = self.mongo._lastTradeConn()
         data = {
@@ -366,7 +366,7 @@ class YuanIndicator(Connector):
         cursor = list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
         if len(cursor) > 1:
             db.delete_one({'_id': cursor[0]['_id']})
-    
+
     def ATR(self, DF, n=14):
         df = DF.copy()
         df['H-L'] = df['HIGH'] - df['LOW']
