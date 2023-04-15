@@ -18,6 +18,6 @@ class DiscordService(Connector):
         webhook = SyncWebhook.from_url(self.webhook)
         webhook.send(message)
     
-    def stableCheck(self):
+    def stableCheck(self, message):
         webhook = SyncWebhook.from_url(self.webhookForStableCheck)
-        webhook.send('STABLE CHECK')
+        webhook.send(message)
