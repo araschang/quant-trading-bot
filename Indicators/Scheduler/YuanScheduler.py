@@ -77,6 +77,6 @@ def job_trend_detect():
     indicator.checkTrend()
     print('JOB "TREND DETECT" DONE')
 
-scheduler.add_job(job_trade, 'interval', seconds=3.8, args=[member])
+scheduler.add_job(job_trade, 'interval', seconds=4.3, args=[member])
 # scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 scheduler.start()
