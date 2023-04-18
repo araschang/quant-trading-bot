@@ -40,10 +40,6 @@ class YuanIndicator(Connector):
         })
 
     def getOHLCV(self, timeframe):
-        '''
-        Get OHLCV data from exchange
-        Return a dataframe with OHLCV data
-        '''
         ohlcv = self.exchange.fetch_ohlcv(self.symbol, timeframe, limit=100)
         df = pd.DataFrame(ohlcv, columns=['TIME', 'OPEN', 'HIGH', 'LOW', 'CLOSE', 'VOLUME'])
         df['OPEN'] = df['OPEN'].astype(float)
@@ -55,10 +51,6 @@ class YuanIndicator(Connector):
         return df
 
     def cleanData2GenerateMeanVolume(self, ohlcv_df):
-        '''
-        Clean data to generate mean volume
-        Return a dataframe with mean volume
-        '''
         volume = ohlcv_df['VOLUME']
         Q1 = volume.quantile(0.25)
         Q3 = volume.quantile(0.75)
@@ -67,10 +59,6 @@ class YuanIndicator(Connector):
         return volume_mean
 
     def checkSignal(self, mean_volume, ohlcv_df):
-        '''
-        Check signal
-        Return a dataframe with signal
-        '''
         if self.exchange_name == 'binance':
             symbol = self.symbol.split('/')
             symbol = symbol[0] + symbol[1]
@@ -91,20 +79,12 @@ class YuanIndicator(Connector):
             else:
                 return ''
 
-    def openPosition(self, ohlcv, side, assetPercent, leverage: int, now_price: float, stoplossPercent) -> None:
-        '''
-        Open position
-        Return a dataframe with open position
-        '''
-        if side != 'buy' and side != 'sell':
-            return
-
+    def openPosition(self, side, assetPercent, now_price: float, now_time, atr) -> None:
         try:
             last_close = self.getLastTradeData()[-1]
         except:
             self.insertLastTradeData(123)
             last_close = self.getLastTradeData()[-1]
-        now_time = int(ohlcv['TIME'].iloc[-1])
         last_close_time = int(last_close['TIME'])
         isnt_same_as_previous_close = (now_time != last_close_time)
         if not isnt_same_as_previous_close:
@@ -128,12 +108,7 @@ class YuanIndicator(Connector):
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
         amount = round(wallet_balance * assetPercent / now_price, 3)
         self.exchange.create_market_order(self.symbol, side, amount)
-        if self.exchange_name == 'binance':
-            now_price = float(self.exchange.fetch_positions([self.symbol])[0]['info']['entryPrice'])
-        ohlcv['ATR'] = self.ATR(ohlcv, 14)
-        atr = float(ohlcv['ATR'].iloc[-1])
-        self.insertTransationData(side, amount, now_price, atr, 0)
-        self.discord.sendMessage(f'**{self.symbol}** {self.name} {side.upper()} {amount} at {now_price}')
+        now_price = float(self.exchange.fetch_positions([self.symbol])[0]['info']['entryPrice'])
 
         if side == 'buy':
             stop_loss_side = 'sell'
@@ -163,10 +138,6 @@ class YuanIndicator(Connector):
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
 
     def changeStopLoss(self, price):
-        '''
-        Change stop loss
-        Return a dataframe with change stop loss
-        '''
         transaciton = self.getTransactionData()[0]
         side = transaciton['SIDE']
         order_info = self.exchange.fetch_open_orders(self.symbol)
@@ -240,10 +211,6 @@ class YuanIndicator(Connector):
                 self.exchange.cancel_all_orders(self.symbol)
 
     def checkIfNoPositionCancelOpenOrder(self):
-        '''
-        Check if no position cancel open order
-        Return a dataframe with check if no position cancel open order
-        '''
         if self.exchange_name == 'binance':
             position = self.exchange.fetch_positions([str(self.symbol)])
             has_position = float(position[0]['info']['positionAmt'])
@@ -270,10 +237,6 @@ class YuanIndicator(Connector):
                     self.exchange.create_market_order(self.symbol, stop_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
 
     def cancelOrder(self):
-        '''
-        Cancel order
-        Return a dataframe with cancel order
-        '''
         try:
             orderId = self.exchange.fetch_open_orders(self.symbol)[0]['info']['orderId']
             self.exchange.cancel_order(orderId, self.symbol)
@@ -281,10 +244,6 @@ class YuanIndicator(Connector):
             pass
 
     def checkTrend(self):
-        '''
-        Check trend
-        Return a dataframe with trend
-        '''
         ohlcv_df = self.getOHLCV('4h')
         ohlcv_df['SHORT_MA'] = ohlcv_df['CLOSE'].ewm(com=20, min_periods=20).mean()
         ohlcv_df['LONG_MA'] = ohlcv_df['CLOSE'].ewm(com=40, min_periods=40).mean()

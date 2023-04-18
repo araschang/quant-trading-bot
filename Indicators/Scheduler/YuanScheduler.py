@@ -12,71 +12,44 @@ api_secret = config['Binance']['api_secret']
 mongo = MongoDBService()
 query = {'STRATEGY': 'YuanCopyTrade'}
 member = list(mongo._memberInfoConn().find(query))
+symbol_lst = ['BTCUSDT', 'ETHUSDT']
 
-def job_bitcoin_signal():
-    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'YuanCopyTrade')
-    ohlcv = indicator.getOHLCV('3m')
-    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    signal = indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "BTC DETECT" DONE')
-    return signal, ohlcv
+def detect_signal(member):
+    _livePriceConn = mongo._livePriceConn()
+    _strategyConn = mongo._strategyConn()
+    for i in range(len(symbol_lst)):
+        livePrice = _livePriceConn.find_one({'SYMBOL': symbol_lst[i]}, sort=[('_id', -1)])
+        time = livePrice['TIME']
+        close = livePrice['CLOSE']
+        volume = livePrice['VOLUME']
+        strategy = _strategyConn.find_one({'SYMBOL': symbol_lst[i], 'STRATEGY': 'YuanCopyTrade'}, sort=[('_id', -1)])
+        mean_vol = strategy['MEAN_VOLUME']
+        atr = strategy['ATR']
+        slope = strategy['SLOPE']
+        if volume > mean_vol * 8:
+            if slope <= 0:
+                signal = 'buy'
+            elif slope > 0:
+                signal = 'sell'
+            for i in range(len(member)):
+                symbol = member[i]['SYMBOL']
+                if symbol[:3] == symbol_lst[i][:3]:
+                    api_key = member[i]['API_KEY']
+                    api_secret = member[i]['API_SECRET']
+                    exchange = member[i]['EXCHANGE']
+                    assetPercent = float(member[i]['ASSET_PERCENT'])
+                    strategy = member[i]['STRATEGY']
+                try:
+                    indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
+                    indicator.openPosition(signal, assetPercent, close, time, atr)
+                except Exception as e:
+                    logging.error(e)
+                    print(e)
+    print('DETECT SIGNAL IS DONE')
 
-def job_eth_signal():
-    indicator = YuanIndicator('ETH/USDT', 'binance', api_key, api_secret, 'YuanCopyTrade')
-    ohlcv = indicator.getOHLCV('3m')
-    mean_volume = indicator.cleanData2GenerateMeanVolume(ohlcv)
-    signal = indicator.checkSignal(mean_volume, ohlcv)
-    print('JOB "ETH DETECT" DONE')
-    return signal, ohlcv
+def detect_stoploss():
+    pass
 
-def job_trade(member_df):
-    btc_signal, btc_ohlcv = job_bitcoin_signal()
-    eth_signal, eth_ohlcv = job_eth_signal()
-    for i in range(len(member_df)):
-        api_key = member_df[i]['API_KEY']
-        api_secret = member_df[i]['API_SECRET']
-        exchange = member_df[i]['EXCHANGE']
-        symbol = member_df[i]['SYMBOL']
-        assetPercent = float(member_df[i]['ASSET_PERCENT'])
-        stoplossPercent = float(member_df[i]['STOPLOSS_PERCENT'])
-        strategy = member_df[i]['STRATEGY']
-
-        indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
-
-        
-        if symbol[:3] == 'BTC':
-            signal = btc_signal
-            now_price = indicator.getLivePrice()
-            ohlcv = btc_ohlcv.copy()
-        elif symbol[:3] == 'ETH':
-            signal = eth_signal
-            now_price = indicator.getLivePrice()
-            ohlcv = eth_ohlcv.copy()
-        try:
-            indicator.openPosition(ohlcv, signal, assetPercent, 100, now_price, stoplossPercent)
-        except Exception as e:
-            logging.error('An error occurred: %s', e, exc_info=True)
-            print(e)
-        try:
-            indicator.checkIfThereIsStopLoss(now_price, ohlcv)
-        except Exception as e:
-            logging.error('An error occurred: %s', e, exc_info=True)
-            print(e)
-        try:
-            indicator.checkIfNoPositionCancelOpenOrder()
-        except Exception as e:
-            logging.error('An error occurred: %s', e, exc_info=True)
-            print(e)
-        
-    print('JOB "TRADE" DONE')
-    print('JOB "CHECK STOPLOSS" DONE')
-    print('JOB "CHECK IF NO POSITION THEN CANCEL OPEN ORDER" DONE')
-
-def job_trend_detect():
-    indicator = YuanIndicator('BTC/USDT', 'binance', api_key, api_secret, 'YuanCopyTrade')
-    indicator.checkTrend()
-    print('JOB "TREND DETECT" DONE')
-
-scheduler.add_job(job_trade, 'interval', seconds=4.3, args=[member])
+scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member])
 # scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 scheduler.start()

@@ -8,27 +8,27 @@ class MongoDBService(object):
     def _livePriceConn(self):
         db = self.client['quant']
         return db['live_price']
-    
+
     def _memberInfoConn(self):
         db = self.client['quant']
         return db['member_info']
-    
-    def _lastTradeConn(self):
-        db = self.client['quant']
-        return db['last_trade']
-    
+
     def _transactionConn(self):
         db = self.client['quant']
         return db['transaction']
-    
-    def _positionConn(self):
-        db = self.client['quant']
-        return db['position']
-    
+
     def _trendConn(self):
         db = self.client['quant']
         return db['trend']
-    
-    def _lastSignalConn(self):
+
+    def _lastTradeTimeConn(self):
         db = self.client['quant']
-        return db['last_signal']
+        return db['last_trade_time']
+
+    def _accountConn(self):
+        db = self.client['quant']
+        return db['account']
+
+    def _strategyConn(self):
+        db = self.client['quant']
+        return db['strategy']
