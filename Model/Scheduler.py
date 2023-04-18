@@ -17,7 +17,7 @@ yuan_api_key = config['Binance_Yuan']['api_key']
 def binance_btc_websocket():
     try:
         websocket = WebsocketService()
-        websocket.binanceWebsocket('btcusdt', '3m')
+        websocket.binancePriceWebsocket('btcusdt', '3m')
     except Exception as e:
         logging.error('An error occurred: %s', e, exc_info=True)
         print(e)
@@ -25,7 +25,7 @@ def binance_btc_websocket():
 def binance_eth_websocket():
     try:
         websocket = WebsocketService()
-        websocket.binanceWebsocket('ethusdt', '3m')
+        websocket.binancePriceWebsocket('ethusdt', '3m')
     except Exception as e:
         logging.error('An error occurred: %s', e, exc_info=True)
         print(e)
