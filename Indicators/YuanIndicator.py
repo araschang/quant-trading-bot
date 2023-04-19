@@ -9,7 +9,7 @@ class Connector(object):
         self.config = Config()
 
 class YuanIndicator(Connector):
-    def __init__(self, symbol, exchange, api_key=None, api_secret=None, strategy=None):
+    def __init__(self, symbol, exchange, api_key, api_secret, strategy):
         super().__init__()
         self.api_key = api_key
         self.api_secret = api_secret
@@ -81,16 +81,16 @@ class YuanIndicator(Connector):
 
     def openPosition(self, side, assetPercent, now_price: float, now_time, atr) -> None:
         try:
-            last_close = self.getLastTradeData()[-1]
+            last_close = self.getLastTradeData()[0]
         except:
             self.insertLastTradeData(123)
-            last_close = self.getLastTradeData()[-1]
+            last_close = self.getLastTradeData()[0]
         last_close_time = int(last_close['TIME'])
         isnt_same_as_previous_close = (now_time != last_close_time)
         if not isnt_same_as_previous_close:
             return
 
-        transaction = self.getTransactionData()
+        transaction = self.getOpenPosition()
         if len(transaction) > 0:
             return
 
@@ -107,8 +107,13 @@ class YuanIndicator(Connector):
 
         wallet_balance = float(self.exchange.fetch_balance()['info']['totalWalletBalance'])
         amount = round(wallet_balance * assetPercent / now_price, 3)
-        self.exchange.create_market_order(self.symbol, side, amount)
-        now_price = float(self.exchange.fetch_positions([self.symbol])[0]['info']['entryPrice'])
+        order = self.exchange.create_market_order(self.symbol, side, amount)['info']
+        orderId = order['orderId']
+        orderType = order['type']
+        time = int(order['updateTime'])
+        price = float(order['avgPrice'])
+        self.insertTransationData(time, orderId, orderType, side, amount, price, atr, 0)
+        self.discord.sendMessage(f'**{self.symbol}** {self.name} {side.upper()} {amount} at {now_price}')
 
         if side == 'buy':
             stop_loss_side = 'sell'
@@ -121,8 +126,8 @@ class YuanIndicator(Connector):
 
         try:
             if self.exchange_name == 'binance':
-                self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
-                self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
+                self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})['info']['orderId']
+                self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})['info']['orderId']
         except Exception:
             self.exchange.cancel_all_orders(self.symbol)
             now_price = self.getLivePrice()
@@ -138,7 +143,7 @@ class YuanIndicator(Connector):
                 self.exchange.create_market_order(self.symbol, stop_loss_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
 
     def changeStopLoss(self, price):
-        transaciton = self.getTransactionData()[0]
+        transaciton = self.getOpenPosition()[0]
         side = transaciton['SIDE']
         order_info = self.exchange.fetch_open_orders(self.symbol)
         if side == 'buy':
@@ -154,73 +159,62 @@ class YuanIndicator(Connector):
         self.exchange.cancel_order(orderId, self.symbol)
         self.exchange.create_market_order(self.symbol, stop_loss_side, 1, params={'stopLossPrice': price, 'closePosition': True})
 
-    def checkIfThereIsStopLoss(self, now_price, ohlcv):
+    def checkIfChangeStopLoss(self, now_price):
         if self.exchange_name == 'binance':
-            position = self.exchange.fetch_positions([str(self.symbol)])
-            has_position = float(position[0]['info']['positionAmt'])
-            if has_position > 0:
-                transaction = self.getTransactionData()[0]
+            position = self.getOpenPosition()
+            has_position = len(position) > 0
+            if has_position:
+                transaction = position[0]
                 price = float(transaction['PRICE'])
                 atr = float(transaction['ATR'])
                 stoploss_stage = int(transaction['STOPLOSS_STAGE'])
                 amount = float(transaction['AMOUNT'])
-                if now_price >= round(price + 1 * atr, 4) and stoploss_stage == 0:
-                    stoploss_price = round(price + 0.0009 * price, 2)
-                    self.changeStopLoss(stoploss_price)
-                    self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
-                    self.updateTransationData('STOPLOSS_STAGE', 1)
-
-                elif now_price >= round(price + 3 * atr, 4) and stoploss_stage == 1:
-                    self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
-                    self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Sell Half')
-                    stoploss_price = round(price + 2 * atr, 2)
-                    try:
+                side = transaction['SIDE']
+                if side == 'buy':
+                    if now_price >= round(price + 1 * atr, 4) and stoploss_stage == 0:
+                        stoploss_price = round(price + 0.0009 * price, 2)
                         self.changeStopLoss(stoploss_price)
-                    except:
+                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
+                        self.updateTransationData('STOPLOSS_STAGE', 1)
+
+                    elif now_price >= round(price + 3 * atr, 4) and stoploss_stage == 1:
                         self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
-                    self.updateTransationData('STOPLOSS_STAGE', 2)
+                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Sell Half')
+                        stoploss_price = round(price + 2 * atr, 2)
+                        try:
+                            self.changeStopLoss(stoploss_price)
+                        except:
+                            self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
+                        self.updateTransationData('STOPLOSS_STAGE', 2)
 
-            elif has_position < 0:
-                transaction = self.getTransactionData()[0]
-                price = float(transaction['PRICE'])
-                atr = float(transaction['ATR'])
-                stoploss_stage = int(transaction['STOPLOSS_STAGE'])
-                amount = float(transaction['AMOUNT'])
-                if now_price <= round(price - 1 * atr, 4) and stoploss_stage == 0:
-                    stoploss_price = round(price - 0.0009 * price, 2)
-                    self.changeStopLoss(stoploss_price)
-                    self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
-                    self.updateTransationData('STOPLOSS_STAGE', 1)
-
-                elif now_price <= round(price - 3 * atr, 4) and stoploss_stage == 1:
-                    self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
-                    self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Buy Half')
-                    stoploss_price = round(price - 2 * atr, 2)
-                    try:
+                else:
+                    if now_price <= round(price - 1 * atr, 4) and stoploss_stage == 0:
+                        stoploss_price = round(price - 0.0009 * price, 2)
                         self.changeStopLoss(stoploss_price)
-                    except:
+                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
+                        self.updateTransationData('STOPLOSS_STAGE', 1)
+
+                    elif now_price <= round(price - 3 * atr, 4) and stoploss_stage == 1:
                         self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
-                    self.updateTransationData('STOPLOSS_STAGE', 2)
+                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Buy Half')
+                        stoploss_price = round(price - 2 * atr, 2)
+                        try:
+                            self.changeStopLoss(stoploss_price)
+                        except:
+                            self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
+                        self.updateTransationData('STOPLOSS_STAGE', 2)
 
             else:
-                count = len(self.getTransactionData())
-                if count > 0:
-                    self.insertLastTradeData(int(ohlcv['TIME'].iloc[-1]))
-                    self.discord.sendMessage(f'**{self.symbol}** {self.name} Position Closed.')
-                    self.deleteTransationData()
                 self.exchange.cancel_all_orders(self.symbol)
 
-    def checkIfNoPositionCancelOpenOrder(self):
+    def checkIfThereIsStopLoss(self):
         if self.exchange_name == 'binance':
-            position = self.exchange.fetch_positions([str(self.symbol)])
-            has_position = float(position[0]['info']['positionAmt'])
-            if has_position == 0:
-                if len(self.exchange.fetch_open_orders(self.symbol)) != 0:
-                    self.exchange.cancel_all_orders(self.symbol)
-            else:
+            position = self.getOpenPosition()
+            has_position = len(position) > 0
+            if has_position:
                 if len(self.exchange.fetch_open_orders(self.symbol)) < 2:
                     self.exchange.cancel_all_orders(self.symbol)
-                    transaction = self.getTransactionData()[0]
+                    transaction = position[0]
                     price = self.getLivePrice()
                     atr = float(transaction['ATR'])
                     side = transaction['SIDE']
@@ -236,12 +230,9 @@ class YuanIndicator(Connector):
                     self.exchange.create_market_order(self.symbol, stop_side, amount, params={'stopLossPrice': stop_loss_price, 'closePosition': True})
                     self.exchange.create_market_order(self.symbol, stop_side, amount, params={'takeProfitPrice': take_profit_price, 'closePosition': True})
 
-    def cancelOrder(self):
-        try:
-            orderId = self.exchange.fetch_open_orders(self.symbol)[0]['info']['orderId']
-            self.exchange.cancel_order(orderId, self.symbol)
-        except:
-            pass
+            else:
+                if len(self.exchange.fetch_open_orders(self.symbol)) != 0:
+                    self.exchange.cancel_all_orders(self.symbol)
 
     def checkTrend(self):
         ohlcv_df = self.getOHLCV('4h')
@@ -262,24 +253,24 @@ class YuanIndicator(Connector):
             if len(cursor) > 1:
                 db.delete_one({'_id': cursor[0]['_id']})
 
-
-    def insertTransationData(self, side, amount, price, ATR, stoploss_stage):
+    def insertTransationData(self, time, orderId, orderType, side, amount, price, ATR, stoploss_stage):
         db = self.mongo._transactionConn()
         data = {
+            'TIME': time,
             'API_KEY': self.api_key,
             'SYMBOL': self.symbol,
+            'ORDER_ID': orderId,
+            'ORDER_TYPE': orderType,
             'SIDE': side,
             'AMOUNT': amount,
             'PRICE': price,
             'ATR': ATR,
             'STRATEGY': self.strategy,
-            'STOPLOSS_STAGE': stoploss_stage
+            'STOPLOSS_STAGE': stoploss_stage,
+            'CLOSE_PRICE': 0,
+            'IS_CLOSE': 0,
         }
         db.insert_one(data)
-
-    def deleteTransationData(self):
-        db = self.mongo._transactionConn()
-        db.delete_one({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy})
 
     def getTransactionData(self):
         db = self.mongo._transactionConn()
@@ -287,7 +278,7 @@ class YuanIndicator(Connector):
 
     def updateTransationData(self, column, param):
         db = self.mongo._transactionConn()
-        db.update_one({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}, {'$set': {f'{column}': param}})
+        db.update_one({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 0}, {'$set': {f'{column}': param}})
 
     def getLivePrice(self):
         db = self.mongo._livePriceConn()
@@ -295,23 +286,16 @@ class YuanIndicator(Connector):
         return float(list(db.find({'SYMBOL': symbol}).sort('TIME', -1).limit(1))[0]['CLOSE'])
 
     def getLastTradeData(self):
-        db = self.mongo._lastTradeConn()
-        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}).sort('TIME', -1).limit(1))
+        db = self.mongo._transactionConn()
+        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 1}).sort('TIME', -1).limit(1))
+
+    def getOpenPosition(self):
+        db = self.mongo._transactionConn()
+        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
 
     def getTrend(self):
         db = self.mongo._trendConn()
         return str(list(db.find({'SYMBOL': self.symbol}))[-1]['TREND'])
-
-    def getLastSignalTime(self):
-        db = self.mongo._lastSignalConn()
-        return int(list(db.find({'STRATEGY': self.strategy}))[0]['TIME'])
-
-    def insertLastSignalTime(self, time):
-        db = self.mongo._lastSignalConn()
-        db.insert_one({'STRATEGY': self.strategy, 'TIME': time})
-        cursor = list(db.find({'STRATEGY': self.strategy}))
-        if len(cursor) > 1:
-            db.delete_one({'_id': cursor[0]['_id']})
 
     def insertLastTradeData(self, time):
         db = self.mongo._lastTradeConn()
@@ -322,9 +306,6 @@ class YuanIndicator(Connector):
             'TIME': time
         }
         db.insert_one(data)
-        cursor = list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
-        if len(cursor) > 1:
-            db.delete_one({'_id': cursor[0]['_id']})
 
     def ATR(self, DF, n=14):
         df = DF.copy()

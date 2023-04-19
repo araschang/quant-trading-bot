@@ -23,7 +23,7 @@ class WebsocketService(Connector):
         self.yuan_api_key = self.config['Binance_Yuan']['api_key']
         self.mongo = MongoDBService()
         self._livePriceConn = self.mongo._livePriceConn()
-        self._accountConn = self.mongo._accountConn()
+        self._transactionConn = self.mongo._transactionConn()
         self.discord = DiscordService()
 
     def binancePriceWebsocket(self, currency, timeframe):
@@ -46,17 +46,6 @@ class WebsocketService(Connector):
             h = float(json_result['k']['h'])
             c = float(json_result['k']['c'])
             v = float(json_result['k']['v'])
-            data = {
-                'SYMBOL': [s],
-                'TIME': [t],
-                'OPEN': [o],
-                'HIGH': [h],
-                'LOW': [l],
-                'CLOSE': [c],
-                'VOLUME': [v],
-            }
-            df = pd.DataFrame(data)
-            print(df)
 
             data_mongo = {
                 'SYMBOL': s,
@@ -72,7 +61,7 @@ class WebsocketService(Connector):
             cursor = list(self._livePriceConn.find({'SYMBOL': s}))
             if len(cursor) > 1:
                 self._livePriceConn.delete_one({'_id': cursor[0]['_id']})
-
+            print(data_mongo)
         except Exception as e:
             print(e)
 
@@ -111,41 +100,23 @@ class WebsocketService(Connector):
     def binanceAccountOnMessage(self, ws, message, api_key):
         data = json.loads(message)
         if data['e'] == self.VALID_ACCOUNT_EVENT_TYPE and data['o']['s'] in self.VALID_SYMBOL:
-            time = int(data['E'])
             symbol = data['o']['s']
             side = data['o']['S']
-            quantity = float(data['o']['q'])
             price = float(data['o']['ap'])
             order_type = data['o']['o']
-            order_status = data['o']['X']
-            orderId = int(data['o']['i'])
+            orderId = data['o']['i']
+
+            if side == 'BUY':
+                post_order_side_should_be = 'sell'
+            elif side == 'SELL':
+                post_order_side_should_be = 'buy'
 
             if order_type == 'MARKET':
-                db_has_no_same_doc = len(self._accountConn.find({'ORDER_ID': orderId})) == 0
-                is_new_position = len(self._accountConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0})) == 0
-                if db_has_no_same_doc and is_new_position:
-                    data_mongo = {
-                        'API_KEY': api_key,
-                        'TIME': time,
-                        'SYMBOL': symbol,
-                        'SIDE': side,
-                        'QUANTITY': quantity,
-                        'PRICE': price,
-                        'ORDER_TYPE': order_type,
-                        'ORDER_STATUS': order_status,
-                        'ORDER_ID': orderId,
-                        'STOPLOSS_STAGE': 0,
-                        'CLOSE_PRICE': 0,
-                        'IS_CLOSE': 0,
-                    }
-                    self._accountConn.insert_one(data_mongo)
-                    if api_key == self.aras_api_key:
-                        name = 'Aras'
-                    elif api_key == self.yuan_api_key:
-                        name = 'Yuan'
-                    self.discord.sendMessage(f'**{symbol}** {name} {side.upper()} {quantity} at {price}')
-                elif db_has_no_same_doc and not is_new_position:
-                    self._accountConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
+                db_has_no_same_doc = len(self._transactionConn.find({'ORDER_ID': orderId})) == 0
+                transaction = list(self._transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
+                has_position = (len(transaction) != 0) and (transaction[0]['SIDE'] == post_order_side_should_be)
+                if db_has_no_same_doc and has_position:
+                    self._transactionConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
                     if api_key == self.aras_api_key:
                         name = 'Aras'
                     elif api_key == self.yuan_api_key:

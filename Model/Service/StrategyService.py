@@ -18,7 +18,7 @@ class StrategyService(Connector):
 
     def YuanIndicatorGenerator(self):
         for i in range(len(self.target_lst)):
-            indicator = YuanIndicator(self.target_lst[i], self.api_key, self.api_secret)
+            indicator = YuanIndicator(symbol=self.target_lst[i], exchange='binance', api_key=self.api_key, api_secret=self.api_secret, strategy='YuanCopyTrade')
             ohlcv = indicator.getOHLCV('3m')
             time = ohlcv['TIME'].iloc[-1]
             mean_vol = indicator.cleanData2GenerateMeanVolume(ohlcv)
