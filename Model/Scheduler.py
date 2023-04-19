@@ -72,10 +72,8 @@ def db_check():
     error_flag = False
     db1 = mongo._livePriceConn().count_documents({})
     db2 = mongo._memberInfoConn().count_documents({})
-    db3 = mongo._lastTradeConn().count_documents({})
-    db4 = mongo._transactionConn().count_documents({})
-    db5 = mongo._lastSignalConn().count_documents({})
-    db_lst = [db1, db2, db3, db4, db5]
+    db3 = mongo._transactionConn().count_documents({})
+    db_lst = [db1, db2, db3]
     for i in range(len(db_lst)):
         if db_lst[i] >= 10:
             webhook.stableCheck(f'Staging: db{i+1} is unstable, please check it.')
