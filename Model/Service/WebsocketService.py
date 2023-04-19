@@ -56,12 +56,7 @@ class WebsocketService(Connector):
                 'CLOSE': c,
                 'VOLUME': v,
             }
-
-            self._livePriceConn.insert_one(data_mongo)
-            cursor = list(self._livePriceConn.find({'SYMBOL': s}))
-            if len(cursor) > 1:
-                self._livePriceConn.delete_one({'_id': cursor[0]['_id']})
-            print(data_mongo)
+            self._livePriceConn.update_one({'SYMBOL': s}, {'$set': data_mongo}, upsert=True)
         except Exception as e:
             print(e)
 
