@@ -49,7 +49,7 @@ def yuan_account_websocket():
 def YuanIndicatorSignal():
     strategy = StrategyService()
     strategy.YuanIndicatorGenerator()
-    print('YuanIndicatorGenerator is done.')
+    print('YuanIndicatorGenerator DONE')
 
 def error_handler(job_id, exception):
     print(f'Error in job {job_id}: {exception}')
@@ -64,11 +64,12 @@ def safe_run(job_id):
 def stable_check():
     db_check()
     webhook = DiscordService()
-    webhook.stableCheck('All jobs are running normally.')
+    webhook.stableCheck('Staging: All jobs are running normally.')
 
 def db_check():
     webhook = DiscordService()
     mongo = MongoDBService()
+    error_flag = False
     db1 = mongo._livePriceConn().count_documents({})
     db2 = mongo._memberInfoConn().count_documents({})
     db3 = mongo._lastTradeConn().count_documents({})
@@ -77,7 +78,11 @@ def db_check():
     db_lst = [db1, db2, db3, db4, db5]
     for i in range(len(db_lst)):
         if db_lst[i] >= 10:
-            webhook.stableCheck(f'db{i+1} is unstable, please check it.')
+            webhook.stableCheck(f'Staging: db{i+1} is unstable, please check it.')
+            error_flag = True
+    if error_flag == False:
+        webhook.stableCheck('Staging: All dbs are stable.')
+
 
 ### to-do: add ohlcv to mongodb
 job1_id = 'binance_btc_websocket'

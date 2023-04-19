@@ -22,7 +22,7 @@ class StrategyService(Connector):
             ohlcv = indicator.getOHLCV('3m')
             time = ohlcv['TIME'].iloc[-1]
             mean_vol = indicator.cleanData2GenerateMeanVolume(ohlcv)
-            atr = indicator.ATR(ohlcv)
+            atr = indicator.ATR(ohlcv).iloc[-1]
             slope = ohlcv['CLOSE'].iloc[-1] - ohlcv['CLOSE'].iloc[-10]
             data_mongo = {
                 'SYMBOL': self.target_lst[i],
