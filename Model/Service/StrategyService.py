@@ -33,4 +33,5 @@ class StrategyService(Connector):
                 'SLOPE': float(slope),
             }
             self._strategyConn.update_one({'SYMBOL': self.target_lst[i], 'STRATEGY': 'YuanCopyTrade'}, {'$set': data_mongo}, upsert=True)
+            print(data_mongo)
 
