@@ -303,6 +303,7 @@ class YuanIndicator(Connector):
             'API_KEY': self.api_key,
             'SYMBOL': self.symbol,
             'STRATEGY': self.strategy,
+            'IS_CLOSE': 1,
             'TIME': time
         }
         db.insert_one(data)
