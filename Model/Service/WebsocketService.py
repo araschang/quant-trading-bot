@@ -56,7 +56,9 @@ class WebsocketService(Connector):
                 'CLOSE': c,
                 'VOLUME': v,
             }
-            self._livePriceConn.update_one({'SYMBOL': s}, {'$set': data_mongo}, upsert=True)
+
+            self._livePriceConn.update_one({'SYMBOL': s, 'TIME': t}, {'$set': data_mongo}, upsert=True)
+            print(data_mongo)
         except Exception as e:
             print(e)
 
