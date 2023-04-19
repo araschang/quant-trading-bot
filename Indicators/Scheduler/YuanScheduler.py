@@ -14,7 +14,7 @@ api_secret = config['Binance']['api_secret']
 mongo = MongoDBService()
 query = {'STRATEGY': 'YuanCopyTrade'}
 member = list(mongo._memberInfoConn().find(query))
-symbol_lst = ['BTCUSDT', 'ETHUSDT']
+symbol_lst = ['BTC/USDT', 'ETH/USDT']
 
 def detect_signal(member):
     _livePriceConn = mongo._livePriceConn()
