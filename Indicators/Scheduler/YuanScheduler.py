@@ -14,17 +14,18 @@ api_secret = config['Binance']['api_secret']
 mongo = MongoDBService()
 query = {'STRATEGY': 'YuanCopyTrade'}
 member = list(mongo._memberInfoConn().find(query))
-symbol_lst = ['BTC/USDT', 'ETH/USDT']
+live_price_symbol_lst = ['BTCUSDT', 'ETHUSDT']
+strategy_symbol_lst = ['BTC/USDT', 'ETH/USDT']
 
 def detect_signal(member):
     _livePriceConn = mongo._livePriceConn()
     _strategyConn = mongo._strategyConn()
-    for i in range(len(symbol_lst)):
-        livePrice = _livePriceConn.find_one({'SYMBOL': symbol_lst[i]}, sort=[('_id', -1)])
+    for i in range(len(live_price_symbol_lst)):
+        livePrice = _livePriceConn.find_one({'SYMBOL': live_price_symbol_lst[i]}, sort=[('_id', -1)])
         time = livePrice['TIME']
         close = livePrice['CLOSE']
         volume = livePrice['VOLUME']
-        strategy = _strategyConn.find_one({'SYMBOL': symbol_lst[i], 'STRATEGY': 'YuanCopyTrade'}, sort=[('_id', -1)])
+        strategy = _strategyConn.find_one({'SYMBOL': strategy_symbol_lst[i], 'STRATEGY': 'YuanCopyTrade'}, sort=[('_id', -1)])
         mean_vol = strategy['MEAN_VOLUME']
         atr = strategy['ATR']
         slope = strategy['SLOPE']
@@ -35,7 +36,7 @@ def detect_signal(member):
                 signal = 'sell'
             for i in range(len(member)):
                 symbol = member[i]['SYMBOL']
-                if symbol[:3] == symbol_lst[i][:3]:
+                if symbol[:3] == strategy_symbol_lst[i][:3]:
                     api_key = member[i]['API_KEY']
                     api_secret = member[i]['API_SECRET']
                     exchange = member[i]['EXCHANGE']
