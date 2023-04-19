@@ -27,10 +27,10 @@ class StrategyService(Connector):
             data_mongo = {
                 'SYMBOL': self.target_lst[i],
                 'STRATEGY': 'YuanCopyTrade',
-                'TIME': time,
-                'MEAN_VOLUME': mean_vol,
-                'ATR': atr,
-                'SLOPE': slope,
+                'TIME': int(time),
+                'MEAN_VOLUME': float(mean_vol),
+                'ATR': float(atr),
+                'SLOPE': float(slope),
             }
             self._strategyConn.insert_one(data_mongo)
             cursor = list(self._strategyConn.find({'SYMBOL': self.symbol, 'STRATEGY': 'YuanCopyTrade'}))
