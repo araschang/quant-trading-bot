@@ -2,7 +2,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from Base.ConfigReader import Config
 from Indicators.YuanIndicator import YuanIndicator
 from Model.Service.MongoDBService import MongoDBService
+from datetime import datetime, timedelta
 import logging
+
 
 logging.basicConfig(filename='quantlog.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
 scheduler = BackgroundScheduler(job_defaults={'max_instances': 1})
@@ -50,6 +52,6 @@ def detect_signal(member):
 def detect_stoploss():
     pass
 
-scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member])
+scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 # scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 scheduler.start()

@@ -91,6 +91,6 @@ scheduler.add_job(safe_run, 'date', id=job1_id, run_date=datetime.now(), args=[j
 scheduler.add_job(safe_run, 'date', id=job2_id, run_date=datetime.now(), args=[job2_id])
 scheduler.add_job(safe_run, 'date', id=job3_id, run_date=datetime.now(), args=[job3_id])
 scheduler.add_job(safe_run, 'date', id=job4_id, run_date=datetime.now(), args=[job4_id])
-scheduler.add_job(YuanIndicatorSignal, 'interval', seconds=5, next_run_time=datetime.now()+timedelta(seconds=5))
+scheduler.add_job(YuanIndicatorSignal, 'interval', seconds=5, next_run_time=datetime.now()+timedelta(seconds=2))
 scheduler.add_job(stable_check, 'interval', hours=8, next_run_time=datetime.now()+timedelta(seconds=10))
 scheduler.start()

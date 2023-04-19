@@ -32,8 +32,5 @@ class StrategyService(Connector):
                 'ATR': float(atr),
                 'SLOPE': float(slope),
             }
-            self._strategyConn.insert_one(data_mongo)
-            cursor = list(self._strategyConn.find({'SYMBOL': self.target_lst[i], 'STRATEGY': 'YuanCopyTrade'}))
-            if len(cursor) > 1:
-                self._strategyConn.delete_one({'_id': cursor[0]['_id']})
+            self._strategyConn.update_one({'SYMBOL': self.target_lst[i], 'STRATEGY': 'YuanCopyTrade'}, {'$set': data_mongo}, upsert=True)
 
