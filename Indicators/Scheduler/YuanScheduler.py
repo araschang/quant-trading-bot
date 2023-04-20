@@ -34,14 +34,14 @@ def detect_signal(member):
                 signal = 'buy'
             elif slope > 0:
                 signal = 'sell'
-            for i in range(len(member)):
-                symbol = member[i]['SYMBOL']
+            for j in range(len(member)):
+                symbol = member[j]['SYMBOL']
                 if symbol[:3] == strategy_symbol_lst[i][:3]:
-                    api_key = member[i]['API_KEY']
-                    api_secret = member[i]['API_SECRET']
-                    exchange = member[i]['EXCHANGE']
-                    assetPercent = float(member[i]['ASSET_PERCENT'])
-                    strategy = member[i]['STRATEGY']
+                    api_key = member[j]['API_KEY']
+                    api_secret = member[j]['API_SECRET']
+                    exchange = member[j]['EXCHANGE']
+                    assetPercent = float(member[j]['ASSET_PERCENT'])
+                    strategy = member[j]['STRATEGY']
                 try:
                     indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
                     indicator.openPosition(signal, assetPercent, close, time, atr)
