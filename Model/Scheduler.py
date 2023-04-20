@@ -19,7 +19,7 @@ def binance_btc_websocket():
         websocket = WebsocketService()
         websocket.binancePriceWebsocket('btcusdt', '3m')
     except Exception as e:
-        logging.error('An error occurred: %s', e, exc_info=True)
+        logging.error('An error occurred in Binance BTC Websocket: %s', e, exc_info=True)
         print(e)
 
 def binance_eth_websocket():
@@ -27,7 +27,7 @@ def binance_eth_websocket():
         websocket = WebsocketService()
         websocket.binancePriceWebsocket('ethusdt', '3m')
     except Exception as e:
-        logging.error('An error occurred: %s', e, exc_info=True)
+        logging.error('An error occurred in Binance ETH Websocket: %s', e, exc_info=True)
         print(e)
 
 def binance_all_market_websocket():
@@ -35,7 +35,7 @@ def binance_all_market_websocket():
         websocket = WebsocketService()
         websocket.binanceAllMarketWebsocket()
     except Exception as e:
-        logging.error('An error occurred: %s', e, exc_info=True)
+        logging.error('An error occurred in Binance All Market Websocket: %s', e, exc_info=True)
         print(e)
 
 def aras_account_websocket():
@@ -43,7 +43,7 @@ def aras_account_websocket():
         websocket = WebsocketService()
         websocket.binanceAccountWebsocket(aras_api_key)
     except Exception as e:
-        logging.error('An error occurred: %s', e, exc_info=True)
+        logging.error('An error occurred in Binance Aras Account Websocket: %s', e, exc_info=True)
         print(e)
 
 def yuan_account_websocket():
@@ -51,12 +51,16 @@ def yuan_account_websocket():
         websocket = WebsocketService()
         websocket.binanceAccountWebsocket(yuan_api_key)
     except Exception as e:
-        logging.error('An error occurred: %s', e, exc_info=True)
+        logging.error('An error occurred in Binance Yuan Account Websocket: %s', e, exc_info=True)
         print(e)
 
 def YuanIndicatorSignal():
-    strategy = StrategyService()
-    strategy.YuanIndicatorGenerator()
+    try:
+        strategy = StrategyService()
+        strategy.YuanIndicatorGenerator()
+    except Exception as e:
+        logging.error('An error occurred in YuanIndicatorGenerator: %s', e, exc_info=True)
+        print(e)
     print('YuanIndicatorGenerator DONE')
 
 def error_handler(job_id, exception):

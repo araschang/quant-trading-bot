@@ -46,7 +46,7 @@ def detect_signal(member):
                     indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
                     indicator.openPosition(signal, assetPercent, close, time, atr)
                 except Exception as e:
-                    logging.error(e)
+                    logging.error('An error occurred in YuanIndicator Detect Signal: %s', e, exc_info=True)
                     print(e)
     print('DETECT SIGNAL IS DONE')
 
@@ -66,7 +66,7 @@ def detect_stoploss(member):
                 indicator.checkIfChangeStopLoss()
                 indicator.checkIfThereIsStopLoss()
             except Exception as e:
-                logging.error(e)
+                logging.error('An error occurred in YuanIndicator Detect Stop Loss: %s', e, exc_info=True)
                 print(e)
     print('DETECT STOPLOSS IS DONE')
 

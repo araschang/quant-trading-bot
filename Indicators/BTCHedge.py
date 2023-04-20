@@ -46,8 +46,8 @@ class BTCHedge(Connector):
                 last_signal_time = last_signal['TIME']
             if last_signal_time == time:
                 return
-            up_trend = list(self.mongo._allMarketConn.find().sort('PCT_CHANGE', -1).limit(3))
-            down_trend = list(self.mongo._allMarketConn.find().sort('PCT_CHANGE', 1).limit(3))
+            up_trend = list(self.mongo._allMarketConn().find().sort('PCT_CHANGE', -1).limit(3))
+            down_trend = list(self.mongo._allMarketConn().find().sort('PCT_CHANGE', 1).limit(3))
             up0 = up_trend[0]['SYMBOL']
             up1 = up_trend[1]['SYMBOL']
             up2 = up_trend[2]['SYMBOL']

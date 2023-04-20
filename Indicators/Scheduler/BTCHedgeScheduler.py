@@ -12,9 +12,13 @@ api_key = config['Binance']['api_key']
 api_secret = config['Binance']['api_secret']
 
 def detect_signal():
-    indicator = BTCHedge('binance', api_key, api_secret)
-    indicator.signalGenerator()
-    print('DETECT BTC HEDGE SIGNAL DONE')
+    try:
+        indicator = BTCHedge('binance', api_key, api_secret)
+        indicator.signalGenerator()
+    except Exception as e:
+        logging.error('An error occurred in BTCHedge signalGenerator: %s', e, exc_info=True)
+        print(e)
+        print('DETECT BTC HEDGE SIGNAL DONE')
 
 scheduler.add_job(detect_signal, 'interval', seconds=0.5, next_run_time=datetime.now() + timedelta(seconds=3))
 scheduler.start()

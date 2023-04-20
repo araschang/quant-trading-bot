@@ -298,7 +298,7 @@ class YuanIndicator(Connector):
         return str(list(db.find({'SYMBOL': self.symbol}))[-1]['TREND'])
 
     def insertLastTradeData(self, time):
-        db = self.mongo._lastTradeConn()
+        db = self.mongo._transactionConn()
         data = {
             'API_KEY': self.api_key,
             'SYMBOL': self.symbol,
