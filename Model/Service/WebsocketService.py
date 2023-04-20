@@ -1,6 +1,7 @@
 import websocket
 import requests
-import pandas as pd
+import sys
+sys.path.append('/Users/araschang/Desktop/coding/quant-station')
 import json
 import time
 import threading
@@ -34,7 +35,7 @@ class WebsocketService(Connector):
                                     on_error=self.on_error,
                                     on_close=self.on_close,
                                     on_pong=self.on_pong)
-        ws.run_forever(ping_interval=25, ping_timeout=10) # 25秒發一次ping，10秒沒收到pong就斷線，官方api文件說ping_interval設25秒可以避免斷線
+        ws.run_forever(ping_interval=25, ping_timeout=10)
 
     def binanceOnMessage(self, ws, message):
         try:
@@ -125,6 +126,35 @@ class WebsocketService(Connector):
             self.binanceAccountOnMessage(ws, message, api_key)
         return wrapped_on_message
 
+    def binanceAllMarketWebsocket(self):
+        websocket.enableTrace(False)
+        socket = 'wss://stream.binance.com:9443/ws/!ticker_1h@arr'
+        ws = websocket.WebSocketApp(socket,
+                                    on_message=self.binanceAllMarketOnMessage,
+                                    on_error=self.on_error,
+                                    on_close=self.on_close,
+                                    on_pong=self.on_pong)
+        ws.run_forever(ping_interval=25, ping_timeout=10)
+
+    def binanceAllMarketOnMessage(self, ws, message):
+        datas = json.loads(message)
+        for data in datas:
+
+            data_mongo = {
+                'SYMBOL': data['s'],
+                'TIME': int(data['E']),
+                'OPEN': float(data['o']),
+                'HIGH': float(data['h']),
+                'LOW': float(data['l']),
+                'CLOSE': float(data['c']),
+                'VOLUME': float(data['v']),
+                'PCT_CHANGE': float(data['P']),
+            }
+
+            self._livePriceConn.update_one({'SYMBOL': data['s']}, {'$set': data_mongo}, upsert=True)
+
+
+
     def on_error(self, ws, error):
         print(error)
 
@@ -133,3 +163,7 @@ class WebsocketService(Connector):
 
     def on_pong(self, wsapp, message):
         print("Got a pong! No need to respond")
+
+if __name__ == '__main__':
+    web = WebsocketService()
+    web.binanceAllMarketWebsocket()
