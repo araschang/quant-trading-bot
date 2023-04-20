@@ -30,6 +30,14 @@ def binance_eth_websocket():
         logging.error('An error occurred: %s', e, exc_info=True)
         print(e)
 
+def binance_all_market_websocket():
+    try:
+        websocket = WebsocketService()
+        websocket.binanceAllMarketWebsocket()
+    except Exception as e:
+        logging.error('An error occurred: %s', e, exc_info=True)
+        print(e)
+
 def aras_account_websocket():
     try:
         websocket = WebsocketService()
@@ -87,10 +95,12 @@ job1_id = 'binance_btc_websocket'
 job2_id = 'binance_eth_websocket'
 job3_id = 'aras_account_websocket'
 job4_id = 'yuan_account_websocket'
+job5_id = 'binance_all_market_websocket'
 scheduler.add_job(safe_run, 'date', id=job1_id, run_date=datetime.now(), args=[job1_id])
 scheduler.add_job(safe_run, 'date', id=job2_id, run_date=datetime.now(), args=[job2_id])
 scheduler.add_job(safe_run, 'date', id=job3_id, run_date=datetime.now(), args=[job3_id])
 scheduler.add_job(safe_run, 'date', id=job4_id, run_date=datetime.now(), args=[job4_id])
+scheduler.add_job(safe_run, 'date', id=job5_id, run_date=datetime.now(), args=[job5_id])
 scheduler.add_job(YuanIndicatorSignal, 'interval', seconds=5, next_run_time=datetime.now()+timedelta(seconds=2))
 scheduler.add_job(stable_check, 'interval', hours=8, next_run_time=datetime.now()+timedelta(seconds=10))
 scheduler.start()
