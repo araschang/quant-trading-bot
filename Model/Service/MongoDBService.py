@@ -36,3 +36,7 @@ class MongoDBService(object):
     def _allMarketConn(self):
         db = self.client['quant']
         return db['all_market']
+
+    def _lastSignal(self):
+        db = self.client['quant']
+        return db['last_signal']
