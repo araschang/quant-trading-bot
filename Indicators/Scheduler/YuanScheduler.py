@@ -42,12 +42,12 @@ def detect_signal(member):
                     exchange = member[j]['EXCHANGE']
                     assetPercent = float(member[j]['ASSET_PERCENT'])
                     strategy = member[j]['STRATEGY']
-                try:
-                    indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
-                    indicator.openPosition(signal, assetPercent, close, time, atr)
-                except Exception as e:
-                    logging.error('An error occurred in YuanIndicator Detect Signal: %s', e, exc_info=True)
-                    print(e)
+                    try:
+                        indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
+                        indicator.openPosition(signal, assetPercent, close, time, atr)
+                    except Exception as e:
+                        logging.error('An error occurred in YuanIndicator Detect Signal: %s', e, exc_info=True)
+                        print(e)
     print('DETECT SIGNAL IS DONE')
 
 def detect_stoploss(member):
