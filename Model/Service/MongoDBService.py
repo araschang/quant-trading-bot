@@ -32,3 +32,7 @@ class MongoDBService(object):
     def _strategyConn(self):
         db = self.client['quant']
         return db['strategy']
+
+    def _allMarketConn(self):
+        db = self.client['quant']
+        return db['all_market']

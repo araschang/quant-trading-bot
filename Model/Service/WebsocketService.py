@@ -25,6 +25,7 @@ class WebsocketService(Connector):
         self.mongo = MongoDBService()
         self._livePriceConn = self.mongo._livePriceConn()
         self._transactionConn = self.mongo._transactionConn()
+        self._allMarketConn = self.mongo._allMarketConn()
         self.discord = DiscordService()
 
     def binancePriceWebsocket(self, currency, timeframe):
@@ -151,7 +152,7 @@ class WebsocketService(Connector):
                 'PCT_CHANGE': float(data['P']),
             }
 
-            self._livePriceConn.update_one({'SYMBOL': data['s']}, {'$set': data_mongo}, upsert=True)
+            self._allMarketConn.update_one({'SYMBOL': data['s']}, {'$set': data_mongo}, upsert=True)
 
 
 
