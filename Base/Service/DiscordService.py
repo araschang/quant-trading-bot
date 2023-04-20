@@ -23,6 +23,6 @@ class DiscordService(Connector):
         webhook = SyncWebhook.from_url(self.webhookForStableCheck)
         webhook.send(message)
 
-    def btc_hedge(self, message):
+    def btcHedgeSendMessage(self, message):
         webhook = SyncWebhook.from_url(self.btc_hedge)
         webhook.send(message)

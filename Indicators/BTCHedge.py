@@ -54,5 +54,5 @@ class BTCHedge(Connector):
             down0 = down_trend[0]['SYMBOL']
             down1 = down_trend[1]['SYMBOL']
             down2 = down_trend[2]['SYMBOL']
-            self.discord.btc_hedge(f'📈BUY: {up0}, {up1}, {up2}\n📉SELL: {down0}, {down1}, {down2}')
+            self.discord.btcHedgeSendMessage(f'📈BUY: {up0}, {up1}, {up2}\n📉SELL: {down0}, {down1}, {down2}')
             self.mongo._lastSignal().update_one({'STRATEGY': 'BTCHedge'}, {'$set': {'TIME': time}}, upsert=True)
