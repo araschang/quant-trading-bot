@@ -52,6 +52,7 @@ def detect_signal(member):
 
 def detect_stoploss(member):
     _transactionConn = mongo._transactionConn()
+    _livePriceConn = mongo._livePriceConn()
     for i in range(len(member)):
         symbol = member[i]['SYMBOL']
         api_key = member[i]['API_KEY']
@@ -63,7 +64,8 @@ def detect_stoploss(member):
         if has_position:
             try:
                 indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
-                indicator.checkIfChangeStopLoss()
+                live_price = _livePriceConn.find_one({'SYMBOL': symbol})['CLOSE']
+                indicator.checkIfChangeStopLoss(live_price)
                 indicator.checkIfThereIsStopLoss()
             except Exception as e:
                 logging.error('An error occurred in YuanIndicator Detect Stop Loss: %s', e, exc_info=True)

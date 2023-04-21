@@ -1,7 +1,5 @@
 import websocket
 import requests
-import sys
-sys.path.append('/Users/araschang/Desktop/coding/quant-station')
 import json
 import time
 import threading
