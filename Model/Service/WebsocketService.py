@@ -102,18 +102,17 @@ class WebsocketService(Connector):
             side = data['o']['S']
             price = float(data['o']['ap'])
             order_type = data['o']['o']
-            orderId = data['o']['i']
+            order_status = data['o']['X']
 
             if side == 'BUY':
                 post_order_side_should_be = 'sell'
             elif side == 'SELL':
                 post_order_side_should_be = 'buy'
 
-            if order_type == 'MARKET':
-                db_has_no_same_doc = len(list(self._transactionConn.find({'ORDER_ID': orderId}))) == 0
+            if order_type == 'MARKET' and order_status == 'FILLED':
                 transaction = list(self._transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
                 has_position = (len(transaction) != 0) and (transaction[0]['SIDE'] == post_order_side_should_be)
-                if db_has_no_same_doc and has_position:
+                if has_position:
                     self._transactionConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
                     if api_key == self.aras_api_key:
                         name = 'Aras'

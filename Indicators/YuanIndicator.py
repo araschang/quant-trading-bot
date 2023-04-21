@@ -255,10 +255,11 @@ class YuanIndicator(Connector):
 
     def insertTransationData(self, time, orderId, orderType, side, amount, price, ATR, stoploss_stage):
         db = self.mongo._transactionConn()
+        symbol = self.symbol.replace('/', '')
         data = {
             'TIME': time,
             'API_KEY': self.api_key,
-            'SYMBOL': self.symbol,
+            'SYMBOL': symbol,
             'ORDER_ID': orderId,
             'ORDER_TYPE': orderType,
             'SIDE': side,
