@@ -275,11 +275,13 @@ class YuanIndicator(Connector):
 
     def getTransactionData(self):
         db = self.mongo._transactionConn()
-        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy}))
+        symbol = self.symbol.replace('/', '')
+        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': symbol, 'STRATEGY': self.strategy}))
 
     def updateTransationData(self, column, param):
         db = self.mongo._transactionConn()
-        db.update_one({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 0}, {'$set': {f'{column}': param}})
+        symbol = self.symbol.replace('/', '')
+        db.update_one({'API_KEY': self.api_key, 'SYMBOL': symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 0}, {'$set': {f'{column}': param}})
 
     def getLivePrice(self):
         db = self.mongo._livePriceConn()
@@ -288,11 +290,13 @@ class YuanIndicator(Connector):
 
     def getLastTradeData(self):
         db = self.mongo._transactionConn()
-        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 1}).sort('TIME', -1).limit(1))
+        symbol = self.symbol.replace('/', '')
+        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 1}).sort('TIME', -1).limit(1))
 
     def getOpenPosition(self):
         db = self.mongo._transactionConn()
-        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': self.symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
+        symbol = self.symbol.replace('/', '')
+        return list(db.find({'API_KEY': self.api_key, 'SYMBOL': symbol, 'STRATEGY': self.strategy, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
 
     def getTrend(self):
         db = self.mongo._trendConn()
@@ -300,9 +304,10 @@ class YuanIndicator(Connector):
 
     def insertLastTradeData(self, time):
         db = self.mongo._transactionConn()
+        symbol = self.symbol.replace('/', '')
         data = {
             'API_KEY': self.api_key,
-            'SYMBOL': self.symbol,
+            'SYMBOL': symbol,
             'STRATEGY': self.strategy,
             'IS_CLOSE': 1,
             'TIME': time
