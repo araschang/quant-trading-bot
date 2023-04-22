@@ -97,6 +97,8 @@ class WebsocketService(Connector):
 
     def binanceAccountOnMessage(self, ws, message, api_key):
         data = json.loads(message)
+        print(data)
+        print(api_key)
         if data['e'] == self.VALID_ACCOUNT_EVENT_TYPE and data['o']['s'] in self.VALID_SYMBOL:
             symbol = data['o']['s']
             side = data['o']['S']
