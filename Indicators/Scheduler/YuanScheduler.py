@@ -66,10 +66,14 @@ def detect_stoploss(member):
                 indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
                 live_price = _livePriceConn.find_one({'SYMBOL': symbol})['CLOSE']
                 indicator.checkIfChangeStopLoss(live_price)
-                indicator.checkIfThereIsStopLoss()
             except Exception as e:
                 logging.error('An error occurred in YuanIndicator Detect Stop Loss: %s', e, exc_info=True)
                 print(e)
+        try:
+            indicator.checkIfThereIsStopLoss()
+        except Exception as e:
+            logging.error('An error occurred in YuanIndicator Detect Stop Loss: %s', e, exc_info=True)
+            print(e)
     print('DETECT STOPLOSS IS DONE')
 
 scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
