@@ -9,7 +9,6 @@ from Base.ConfigReader import Config
 from Model.Service.MongoDBService import MongoDBService
 from Base.Service.DiscordService import DiscordService
 import logging
-logging.basicConfig(filename='quantlog.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 
 class Connector(object):
@@ -30,6 +29,7 @@ class WebsocketService(Connector):
         self._transactionConn = self.mongo._transactionConn()
         self._allMarketConn = self.mongo._allMarketConn()
         self.discord = DiscordService()
+        logging.basicConfig(filename='quantlog.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s')
 
     def binancePriceWebsocket(self, currency, timeframe):
         websocket.enableTrace(False)
@@ -116,7 +116,7 @@ class WebsocketService(Connector):
             if order_type == 'MARKET' and order_status == 'FILLED':
                 transaction = list(self._transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
                 if (len(transaction) != 0) and (transaction[0]['SIDE'] == post_order_side_should_be): # has open position
-                    logging.debug(f'Account info {api_key} {symbol} {side} {price} {order_type} {order_status}')
+                    logging.error(f'Account info {api_key} {symbol} {side} {price} {order_type} {order_status}')
                     self._transactionConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
                     if api_key == self.aras_api_key:
                         name = 'Aras'
