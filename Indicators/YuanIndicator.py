@@ -164,6 +164,7 @@ class YuanIndicator(Connector):
             position = self.getOpenPosition()
             has_position = len(position) > 0
             if has_position:
+                print(position)
                 transaction = position[0]
                 price = float(transaction['PRICE'])
                 atr = float(transaction['ATR'])
