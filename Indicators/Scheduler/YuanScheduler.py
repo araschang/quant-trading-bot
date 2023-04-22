@@ -69,14 +69,24 @@ def detect_stoploss(member):
             except Exception as e:
                 logging.error('An error occurred in YuanIndicator Detect Stop Loss: %s', e, exc_info=True)
                 print(e)
+    print('DETECT STOPLOSS IS DONE')
+
+def check_stoploss(member):
+    for i in range(len(member)):
+        symbol = member[i]['SYMBOL']
+        api_key = member[i]['API_KEY']
+        api_secret = member[i]['API_SECRET']
+        exchange = member[i]['EXCHANGE']
+        strategy = member[i]['STRATEGY']
+        indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
         try:
             indicator.checkIfThereIsStopLoss()
         except Exception as e:
-            logging.error('An error occurred in YuanIndicator Detect Stop Loss: %s', e, exc_info=True)
+            logging.error('An error occurred in YuanIndicator Check Stop Loss: %s', e, exc_info=True)
             print(e)
-    print('DETECT STOPLOSS IS DONE')
 
 scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 scheduler.add_job(detect_stoploss, 'interval', seconds=1, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
+scheduler.add_job(check_stoploss, 'interval', seconds=5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 # scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
 scheduler.start()
