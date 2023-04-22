@@ -97,8 +97,6 @@ class WebsocketService(Connector):
 
     def binanceAccountOnMessage(self, ws, message, api_key):
         data = json.loads(message)
-        print(data)
-        print(api_key)
         if data['e'] == self.VALID_ACCOUNT_EVENT_TYPE and data['o']['s'] in self.VALID_SYMBOL:
             symbol = data['o']['s']
             side = data['o']['S']
@@ -114,6 +112,8 @@ class WebsocketService(Connector):
             if order_type == 'MARKET' and order_status == 'FILLED':
                 transaction = list(self._transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
                 has_position = (len(transaction) != 0) and (transaction[0]['SIDE'] == post_order_side_should_be)
+                print(data)
+                print(transaction)
                 if has_position:
                     self._transactionConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
                     if api_key == self.aras_api_key:
