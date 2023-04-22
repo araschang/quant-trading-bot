@@ -139,19 +139,19 @@ class WebsocketService(Connector):
     def binanceAllMarketOnMessage(self, ws, message):
         datas = json.loads(message)
         for data in datas:
+            if data['s'] in self.CONTRACT_MARKET:
+                data_mongo = {
+                    'SYMBOL': data['s'],
+                    'TIME': int(data['E']),
+                    'OPEN': float(data['o']),
+                    'HIGH': float(data['h']),
+                    'LOW': float(data['l']),
+                    'CLOSE': float(data['c']),
+                    'VOLUME': float(data['v']),
+                    'PCT_CHANGE': float(data['P']),
+                }
 
-            data_mongo = {
-                'SYMBOL': data['s'],
-                'TIME': int(data['E']),
-                'OPEN': float(data['o']),
-                'HIGH': float(data['h']),
-                'LOW': float(data['l']),
-                'CLOSE': float(data['c']),
-                'VOLUME': float(data['v']),
-                'PCT_CHANGE': float(data['P']),
-            }
-
-            self._allMarketConn.update_one({'SYMBOL': data['s']}, {'$set': data_mongo}, upsert=True)
+                self._allMarketConn.update_one({'SYMBOL': data['s']}, {'$set': data_mongo}, upsert=True)
 
     def on_error(self, ws, error):
         print(error)
@@ -164,4 +164,4 @@ class WebsocketService(Connector):
 
 if __name__ == '__main__':
     web = WebsocketService()
-    web.binanceAccountWebsocket('Af245tCHxHvrKWOqrzA2T8lUPRNjlkuIPZqq9SnzrltBxdFZ7jJhigTLVEbQX70d')
+    web.binanceAccountWebsocket()
