@@ -115,14 +115,16 @@ class WebsocketService(Connector):
 
             if order_type == 'MARKET' and order_status == 'FILLED':
                 transaction = list(self._transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
-                if (len(transaction) != 0) and (transaction[0]['SIDE'] == post_order_side_should_be): # has open position
-                    logging.error(f'Account info {api_key} {symbol} {side} {price} {order_type} {order_status}')
-                    self._transactionConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
-                    if api_key == self.aras_api_key:
-                        name = 'Aras'
-                    elif api_key == self.yuan_api_key:
-                        name = 'Yuan'
-                    self.discord.sendMessage(f'**{symbol}** {name} position closed at {price}')
+                has_position = len(transaction) != 0
+                if has_position: # has open position
+                    if transaction[0]['SIDE'] == post_order_side_should_be:
+                        logging.error(f'Account info {api_key} {symbol} {side} {price} {order_type} {order_status}')
+                        self._transactionConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
+                        if api_key == self.aras_api_key:
+                            name = 'Aras'
+                        elif api_key == self.yuan_api_key:
+                            name = 'Yuan'
+                        self.discord.sendMessage(f'**{symbol}** {name} position closed at {price}')
 
     def createAccountOnMessage(self, api_key):
         def wrapped_on_message(ws, message):
