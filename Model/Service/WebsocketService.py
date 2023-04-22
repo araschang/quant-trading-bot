@@ -3,6 +3,8 @@ import requests
 import json
 import time
 import threading
+import sys
+sys.path.append('/Users/araschang/Desktop/coding/quant-station')
 from Base.ConfigReader import Config
 from Model.Service.MongoDBService import MongoDBService
 from Base.Service.DiscordService import DiscordService
@@ -111,10 +113,7 @@ class WebsocketService(Connector):
 
             if order_type == 'MARKET' and order_status == 'FILLED':
                 transaction = list(self._transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}).sort('TIME', -1).limit(1))
-                has_position = (len(transaction) != 0) and (transaction[0]['SIDE'] == post_order_side_should_be)
-                print(data)
-                print(transaction)
-                if has_position:
+                if (len(transaction) != 0) and (transaction[0]['SIDE'] == post_order_side_should_be): # has open position
                     self._transactionConn.update_one({'API_KEY': api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
                     if api_key == self.aras_api_key:
                         name = 'Aras'
@@ -165,4 +164,4 @@ class WebsocketService(Connector):
 
 if __name__ == '__main__':
     web = WebsocketService()
-    web.binanceAllMarketWebsocket()
+    web.binanceAccountWebsocket('Af245tCHxHvrKWOqrzA2T8lUPRNjlkuIPZqq9SnzrltBxdFZ7jJhigTLVEbQX70d')
