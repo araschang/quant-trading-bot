@@ -62,6 +62,7 @@ def detect_stoploss(member):
         position = list(_transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'STRATEGY': strategy, 'IS_CLOSE': 0}, sort=[('_id', -1)]).limit(1))
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
         has_position = len(position) > 0
+        print(position)
         if has_position:
             try:
                 live_price = _livePriceConn.find_one({'SYMBOL': symbol})['CLOSE']

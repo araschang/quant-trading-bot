@@ -162,10 +162,8 @@ class YuanIndicator(Connector):
     def checkIfChangeStopLoss(self, now_price):
         if self.exchange_name == 'binance':
             position = self.getOpenPosition()
-            print(position)
             has_position = len(position) > 0
             if has_position:
-                
                 transaction = position[0]
                 price = float(transaction['PRICE'])
                 atr = float(transaction['ATR'])
