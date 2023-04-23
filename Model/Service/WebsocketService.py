@@ -158,7 +158,7 @@ class WebsocketService(Connector):
 
                 self._allMarketConn.update_one({'SYMBOL': data['s']}, {'$set': data_mongo}, upsert=True)
 
-    def on_error(self, ws, error):
+    def on_error(self, ws, error, close_status_code, close_msg, close_status, close_reason, close_code, close_reason_code, close_reason_text, close_reason_data):
         print(error)
 
     def on_close(self, close_msg, close_status_code, close_status):

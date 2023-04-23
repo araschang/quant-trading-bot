@@ -15,44 +15,24 @@ aras_api_key = config['Binance_Aras']['api_key']
 yuan_api_key = config['Binance_Yuan']['api_key']
 
 def binance_btc_websocket():
-    try:
-        websocket = WebsocketService()
-        websocket.binancePriceWebsocket('btcusdt', '3m')
-    except Exception as e:
-        logging.error('An error occurred in Binance BTC Websocket: %s', e, exc_info=True)
-        print(e)
+    websocket = WebsocketService()
+    websocket.binancePriceWebsocket('btcusdt', '3m')
 
 def binance_eth_websocket():
-    try:
-        websocket = WebsocketService()
-        websocket.binancePriceWebsocket('ethusdt', '3m')
-    except Exception as e:
-        logging.error('An error occurred in Binance ETH Websocket: %s', e, exc_info=True)
-        print(e)
+    websocket = WebsocketService()
+    websocket.binancePriceWebsocket('ethusdt', '3m')
 
 def binance_all_market_websocket():
-    try:
-        websocket = WebsocketService()
-        websocket.binanceAllMarketWebsocket()
-    except Exception as e:
-        logging.error('An error occurred in Binance All Market Websocket: %s', e, exc_info=True)
-        print(e)
+    websocket = WebsocketService()
+    websocket.binanceAllMarketWebsocket()
 
 def aras_account_websocket():
-    try:
-        websocket = WebsocketService()
-        websocket.binanceAccountWebsocket(aras_api_key)
-    except Exception as e:
-        logging.error('An error occurred in Binance Aras Account Websocket: %s', e, exc_info=True)
-        print(e)
+    websocket = WebsocketService()
+    websocket.binanceAccountWebsocket(aras_api_key)
 
 def yuan_account_websocket():
-    try:
-        websocket = WebsocketService()
-        websocket.binanceAccountWebsocket(yuan_api_key)
-    except Exception as e:
-        logging.error('An error occurred in Binance Yuan Account Websocket: %s', e, exc_info=True)
-        print(e)
+    websocket = WebsocketService()
+    websocket.binanceAccountWebsocket(yuan_api_key)
 
 def YuanIndicatorSignal():
     try:
@@ -65,6 +45,7 @@ def YuanIndicatorSignal():
 
 def error_handler(job_id, exception):
     print(f'Error in job {job_id}: {exception}')
+    logging.error('An error occurred in %s: %s', job_id, exception, exc_info=True)
     scheduler.add_job(safe_run, 'date', id=job_id, run_date=datetime.now(), args=[job_id])
 
 def safe_run(job_id):
