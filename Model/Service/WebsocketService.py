@@ -79,7 +79,7 @@ class WebsocketService(Connector):
         ping_thread = threading.Thread(target=self.binanceAccountPing, args=(ws,))
         ping_thread.daemon = True
         ping_thread.start()
-        ws.run_forever()
+        ws.run_forever(ping_interval=25, ping_timeout=10)
 
     def getBinanceListenKey(self, api_key):
         base_url = 'https://fapi.binance.com'
@@ -146,6 +146,7 @@ class WebsocketService(Connector):
 
     def binanceAllMarketOnMessage(self, ws, message):
         datas = json.loads(message)
+        print('binanceAllMarket is working')
         for data in datas:
             if data['s'] in self.CONTRACT_MARKET:
                 data_mongo = {
