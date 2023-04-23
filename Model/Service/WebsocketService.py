@@ -92,7 +92,7 @@ class WebsocketService(Connector):
         return response.json()['listenKey']
 
     def binanceAccountPing(self, ws):
-        while ws.keep_running:
+        while True:
             print('binanceAccountPing start')
             time.sleep(3000)
             raise Exception('Restart websocket')
