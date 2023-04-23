@@ -93,11 +93,13 @@ class WebsocketService(Connector):
 
     def binanceAccountPing(self, ws):
         while ws.keep_running:
+            print('binanceAccountPing start')
             time.sleep(3000)
-            base_url = 'https://fapi.binance.com'
-            endpoint = f'/fapi/v1/listenKey'
-            url = base_url + endpoint
-            response = requests.put(url)
+            raise Exception('Restart websocket')
+            # base_url = 'https://fapi.binance.com'
+            # endpoint = f'/fapi/v1/listenKey'
+            # url = base_url + endpoint
+            # response = requests.put(url)
 
     def binanceAccountOnMessage(self, ws, message, api_key):
         data = json.loads(message)
