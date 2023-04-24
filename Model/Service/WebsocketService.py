@@ -95,7 +95,7 @@ class WebsocketService(Connector):
     def binanceAccountPing(self, ws):
         while True:
             print('binanceAccountPing start')
-            time.sleep(60)
+            time.sleep(5)
             raise Exception('Restart websocket')
             # base_url = 'https://fapi.binance.com'
             # endpoint = f'/fapi/v1/listenKey'
