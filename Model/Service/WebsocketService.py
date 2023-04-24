@@ -174,7 +174,7 @@ class WebsocketService(Connector):
 
     def binanceAccountOnPing(self, ws, message):
         print(f'Received ping: {message}')
-        ws.pong(message)
+        ws.send(message, websocket.ABNF.OPCODE_PONG)
 
 if __name__ == '__main__':
     web = WebsocketService()
