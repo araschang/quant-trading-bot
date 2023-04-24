@@ -81,6 +81,9 @@ class WebsocketService(Connector):
         ping_thread.daemon = True
         ping_thread.start()
         ws.run_forever(ping_interval=25, ping_timeout=10)
+        while True:
+            time.sleep(1)
+            print('TESTTESTTESTTESTTESTTESTTESTTESTTESTTEST')
 
     def getBinanceListenKey(self, api_key):
         base_url = 'https://fapi.binance.com'
@@ -95,7 +98,7 @@ class WebsocketService(Connector):
     def binanceAccountPing(self, ws):
         while True:
             print('binanceAccountPing start')
-            time.sleep(5)
+            time.sleep(60)
             raise Exception('Restart websocket')
             # base_url = 'https://fapi.binance.com'
             # endpoint = f'/fapi/v1/listenKey'
