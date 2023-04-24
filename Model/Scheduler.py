@@ -65,8 +65,7 @@ def db_check():
     error_flag = False
     db1 = mongo._livePriceConn().count_documents({})
     db2 = mongo._memberInfoConn().count_documents({})
-    db3 = mongo._transactionConn().count_documents({})
-    db_lst = [db1, db2, db3]
+    db_lst = [db1, db2]
     for i in range(len(db_lst)):
         if db_lst[i] >= 10:
             webhook.stableCheck(f'Staging: db{i+1} is unstable, please check it.')
@@ -83,7 +82,7 @@ job4_id = 'yuan_account_websocket'
 job5_id = 'binance_all_market_websocket'
 scheduler.add_job(safe_run, 'date', id=job1_id, run_date=datetime.now(), args=[job1_id])
 scheduler.add_job(safe_run, 'date', id=job2_id, run_date=datetime.now(), args=[job2_id])
-scheduler.add_job(safe_run, 'date', id=job3_id, run_date=datetime.now(), args=[job3_id])
+scheduler.add_job(safe_run, 'interval', id=job3_id, minutes=50, args=[job3_id])
 # scheduler.add_job(safe_run, 'date', id=job4_id, run_date=datetime.now(), args=[job4_id])
 scheduler.add_job(safe_run, 'date', id=job5_id, run_date=datetime.now(), args=[job5_id])
 scheduler.add_job(YuanIndicatorSignal, 'interval', seconds=5, next_run_time=datetime.now()+timedelta(seconds=2))
