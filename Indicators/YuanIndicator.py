@@ -170,39 +170,44 @@ class YuanIndicator(Connector):
                 stoploss_stage = int(transaction['STOPLOSS_STAGE'])
                 amount = float(transaction['AMOUNT'])
                 side = transaction['SIDE']
-                if side == 'buy':
-                    if now_price >= round(price + 1 * atr, 4) and stoploss_stage == 0:
-                        stoploss_price = round(price + 0.0009 * price, 2)
-                        self.changeStopLoss(stoploss_price)
-                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
-                        self.updateTransationData('STOPLOSS_STAGE', 1)
-
-                    elif now_price >= round(price + 3 * atr, 4) and stoploss_stage == 1:
-                        self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
-                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Sell Half')
-                        stoploss_price = round(price + 2 * atr, 2)
-                        try:
+                if self.exchange.fetch_positions([self.symbol])[0]['positionAmt'] != '0':
+                    if side == 'buy':
+                        if now_price >= round(price + 1 * atr, 4) and stoploss_stage == 0:
+                            stoploss_price = round(price + 0.0009 * price, 2)
                             self.changeStopLoss(stoploss_price)
-                        except:
+                            self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
+                            self.updateTransationData('STOPLOSS_STAGE', 1)
+
+                        elif now_price >= round(price + 3 * atr, 4) and stoploss_stage == 1:
                             self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
-                        self.updateTransationData('STOPLOSS_STAGE', 2)
+                            self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Sell Half')
+                            stoploss_price = round(price + 2 * atr, 2)
+                            try:
+                                self.changeStopLoss(stoploss_price)
+                            except:
+                                self.exchange.create_market_order(self.symbol, 'sell', round(amount / 2, 3))
+                            self.updateTransationData('STOPLOSS_STAGE', 2)
 
-                else:
-                    if now_price <= round(price - 1 * atr, 4) and stoploss_stage == 0:
-                        stoploss_price = round(price - 0.0009 * price, 2)
-                        self.changeStopLoss(stoploss_price)
-                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
-                        self.updateTransationData('STOPLOSS_STAGE', 1)
-
-                    elif now_price <= round(price - 3 * atr, 4) and stoploss_stage == 1:
-                        self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
-                        self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Buy Half')
-                        stoploss_price = round(price - 2 * atr, 2)
-                        try:
+                    else:
+                        if now_price <= round(price - 1 * atr, 4) and stoploss_stage == 0:
+                            stoploss_price = round(price - 0.0009 * price, 2)
                             self.changeStopLoss(stoploss_price)
-                        except:
+                            self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 1, Protect Original Price')
+                            self.updateTransationData('STOPLOSS_STAGE', 1)
+
+                        elif now_price <= round(price - 3 * atr, 4) and stoploss_stage == 1:
                             self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
-                        self.updateTransationData('STOPLOSS_STAGE', 2)
+                            self.discord.sendMessage(f'**{self.symbol}** {self.name} Stoploss Stage 2, Buy Half')
+                            stoploss_price = round(price - 2 * atr, 2)
+                            try:
+                                self.changeStopLoss(stoploss_price)
+                            except:
+                                self.exchange.create_market_order(self.symbol, 'buy', round(amount / 2, 3))
+                            self.updateTransationData('STOPLOSS_STAGE', 2)
+                else:
+                    symbol = self.symbol.replace('/', '')
+                    self.mongo._transactionConn.update_one({'API_KEY': self.api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
+                    self.discord.sendMessage(f'**{self.symbol}** {self.name} Close Position, Price: {price}')
 
             else:
                 self.exchange.cancel_all_orders(self.symbol)
