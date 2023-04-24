@@ -75,7 +75,8 @@ class WebsocketService(Connector):
                                     on_message=self.createAccountOnMessage(api_key),
                                     on_error=self.on_error,
                                     on_close=self.on_close,
-                                    on_pong=self.on_pong)
+                                    on_pong=self.on_pong,
+                                    on_ping=self.binanceAccountOnPing)
         ping_thread = threading.Thread(target=self.binanceAccountPing, args=(ws,))
         ping_thread.daemon = True
         ping_thread.start()
@@ -170,6 +171,10 @@ class WebsocketService(Connector):
 
     def on_pong(self, wsapp, message):
         print("Got a pong! No need to respond")
+
+    def binanceAccountOnPing(self, ws, message):
+        print(f'Received ping: {message}')
+        ws.pong(message)
 
 if __name__ == '__main__':
     web = WebsocketService()
