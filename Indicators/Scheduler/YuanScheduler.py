@@ -18,7 +18,7 @@ live_price_symbol_lst = ['BTCUSDT', 'ETHUSDT']
 strategy_symbol_lst = ['BTC/USDT', 'ETH/USDT']
 
 
-def detect_signal(member, YuanIndicator):
+def detect_signal(member):
     _livePriceConn = mongo._livePriceConn()
     _strategyConn = mongo._strategyConn()
     for i in range(len(live_price_symbol_lst)):
@@ -51,7 +51,7 @@ def detect_signal(member, YuanIndicator):
                         print(e)
     print('DETECT SIGNAL IS DONE')
 
-def detect_stoploss(member, YuanIndicator):
+def detect_stoploss(member):
     _transactionConn = mongo._transactionConn()
     _livePriceConn = mongo._livePriceConn()
     for i in range(len(member)):
