@@ -170,7 +170,7 @@ class YuanIndicator(Connector):
                 stoploss_stage = int(transaction['STOPLOSS_STAGE'])
                 amount = float(transaction['AMOUNT'])
                 side = transaction['SIDE']
-                if self.exchange.fetch_positions([self.symbol])[0]['positionAmt'] != '0':
+                if float(self.exchange.fetch_positions([self.symbol])[0]['info']['positionAmt']) != 0:
                     if side == 'buy':
                         if now_price >= round(price + 1 * atr, 4) and stoploss_stage == 0:
                             stoploss_price = round(price + 0.0009 * price, 2)
