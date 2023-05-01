@@ -25,5 +25,5 @@ def detect_signal(member):
         print(e)
     print('DETECT BTC HEDGE SIGNAL DONE')
 
-scheduler.add_job(detect_signal, 'interval', seconds=0.5, next_run_time=datetime.now() + timedelta(seconds=3))
+scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 scheduler.start()
