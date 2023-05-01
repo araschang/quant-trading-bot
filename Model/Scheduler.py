@@ -27,10 +27,12 @@ def binance_all_market_websocket():
     websocket.binanceAllMarketWebsocket()
 
 def aras_account_websocket():
+    print('aras_account_websocket')
     websocket = WebsocketService()
     websocket.binanceAccountWebsocket(aras_api_key)
 
 def yuan_account_websocket():
+    print('yuan_account_websocket')
     websocket = WebsocketService()
     websocket.binanceAccountWebsocket(yuan_api_key)
 
@@ -77,14 +79,12 @@ def db_check():
 ### to-do: add ohlcv to mongodb
 job1_id = 'binance_btc_websocket'
 job2_id = 'binance_eth_websocket'
-job3_id = 'aras_account_websocket'
-job4_id = 'yuan_account_websocket'
-job5_id = 'binance_all_market_websocket'
+job3_id = 'binance_all_market_websocket'
 scheduler.add_job(safe_run, 'date', id=job1_id, run_date=datetime.now(), args=[job1_id])
 scheduler.add_job(safe_run, 'date', id=job2_id, run_date=datetime.now(), args=[job2_id])
-# scheduler.add_job(safe_run, 'interval', id=job3_id, minutes=50, args=[job3_id], next_run_time=datetime.now()+timedelta(seconds=5))
-# scheduler.add_job(safe_run, 'date', id=job4_id, run_date=datetime.now(), args=[job4_id])
-scheduler.add_job(safe_run, 'date', id=job5_id, run_date=datetime.now(), args=[job5_id])
+scheduler.add_job(aras_account_websocket, 'interval', minutes=30, next_run_time=datetime.now()+timedelta(seconds=3))
+scheduler.add_job(yuan_account_websocket, 'interval', minutes=30, next_run_time=datetime.now()+timedelta(seconds=3))
+scheduler.add_job(safe_run, 'date', id=job3_id, run_date=datetime.now(), args=[job3_id])
 scheduler.add_job(YuanIndicatorSignal, 'interval', seconds=10, next_run_time=datetime.now()+timedelta(seconds=2))
 scheduler.add_job(stable_check, 'interval', hours=8, next_run_time=datetime.now()+timedelta(seconds=10))
 scheduler.start()

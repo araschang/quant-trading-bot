@@ -63,6 +63,25 @@ def detect_stoploss(member):
         symbol = symbol.replace('/', '')
         position = list(_transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'STRATEGY': strategy, 'IS_CLOSE': 0}, sort=[('_id', -1)]).limit(1))
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
+
+        # check position unrealized profit
+        unrealized_sum = 0
+        hedge_position = list(_transactionConn.find({'API_KEY': api_key, 'STRATEGY': 'BTCHedge', 'IS_CLOSE': 0}))
+        hedge_position_symbol = [hedge_position[i]['SYMBOL'] for i in range(len(hedge_position))]
+        position_unrealized_info = indicator.exchange.fetch_positions()
+        for i in range(len(position_unrealized_info)):
+            if position_unrealized_info[i]['info']['symbol'] in hedge_position_symbol:
+                unrealized_sum += position_unrealized_info[i]['unRealizedProfit']
+        if unrealized_sum < 5 or unrealized_sum > 5:
+            for i in range(len(hedge_position)):
+                if hedge_position[i]['SIDE'] == 'BUY':
+                    side = 'sell'
+                else:
+                    side = 'buy'
+                indicator.exchange.create_market_order(hedge_position[i]['SYMBOL'], side, hedge_position[i]['AMOUNT'])
+                mongo._transactionConn().update_one({'API_KEY': api_key, 'SYMBOL': hedge_position[i]['SYMBOL'], 'STRATEGY': 'BTCHedge', 'IS_CLOSE': 0}, {'$set': {'IS_CLOSE': 1}})
+            indicator.discord.sendMessage('Hedge Position is closed')
+
         has_position = len(position) > 0
         print(position)
         if has_position:
