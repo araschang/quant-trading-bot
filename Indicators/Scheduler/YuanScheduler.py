@@ -71,7 +71,7 @@ def detect_stoploss(member):
         position_unrealized_info = indicator.exchange.fetch_positions()
         for i in range(len(position_unrealized_info)):
             if position_unrealized_info[i]['info']['symbol'] in hedge_position_symbol:
-                unrealized_sum += position_unrealized_info[i]['unRealizedProfit']
+                unrealized_sum += float(position_unrealized_info[i]['unRealizedProfit'])
         if unrealized_sum < 5 or unrealized_sum > 5:
             for i in range(len(hedge_position)):
                 if hedge_position[i]['SIDE'] == 'BUY':
@@ -80,7 +80,7 @@ def detect_stoploss(member):
                     side = 'buy'
                 indicator.exchange.create_market_order(hedge_position[i]['SYMBOL'], side, hedge_position[i]['AMOUNT'])
                 mongo._transactionConn().update_one({'API_KEY': api_key, 'SYMBOL': hedge_position[i]['SYMBOL'], 'STRATEGY': 'BTCHedge', 'IS_CLOSE': 0}, {'$set': {'IS_CLOSE': 1}})
-            indicator.discord.sendMessage('Hedge Position is closed')
+            indicator.discord.btcHedgeSendMessage('Hedge Position is closed')
 
         has_position = len(position) > 0
         print(position)
