@@ -72,7 +72,7 @@ def detect_stoploss(member):
         for i in range(len(position_unrealized_info)):
             if position_unrealized_info[i]['info']['symbol'] in hedge_position_symbol:
                 unrealized_sum += float(position_unrealized_info[i]['unRealizedProfit'])
-        if unrealized_sum < 5 or unrealized_sum > 5:
+        if (unrealized_sum < -1 * 5) or (unrealized_sum > 5):
             for i in range(len(hedge_position)):
                 if hedge_position[i]['SIDE'] == 'BUY':
                     side = 'sell'
