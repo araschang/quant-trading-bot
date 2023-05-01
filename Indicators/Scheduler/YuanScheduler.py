@@ -26,11 +26,14 @@ def detect_signal(member):
         time = livePrice['TIME']
         close = livePrice['CLOSE']
         volume = livePrice['VOLUME']
+        open = livePrice['OPEN']
+        low = livePrice['LOW']
+        high = livePrice['HIGH']
         strategy = _strategyConn.find_one({'SYMBOL': strategy_symbol_lst[i], 'STRATEGY': 'YuanCopyTrade'}, sort=[('_id', -1)])
         mean_vol = strategy['MEAN_VOLUME']
         atr = strategy['ATR']
         slope = strategy['SLOPE']
-        if volume > mean_vol * 8:
+        if (volume > mean_vol * 9) and ((close < ((open + low) / 2)) or (close > ((open + high) / 2))):
             if slope <= 0:
                 signal = 'buy'
             elif slope > 0:
