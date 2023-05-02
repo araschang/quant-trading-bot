@@ -33,7 +33,7 @@ def detect_signal(member):
         mean_vol = strategy['MEAN_VOLUME']
         atr = strategy['ATR']
         slope = strategy['SLOPE']
-        if (volume > mean_vol * 9) and ((close < ((open + low) / 2)) or (close > ((open + high) / 2))):
+        if (volume > mean_vol * 8) and ((close < ((open + low) / 2)) or (close > ((open + high) / 2))):
             if slope <= 0:
                 signal = 'buy'
             elif slope > 0:
