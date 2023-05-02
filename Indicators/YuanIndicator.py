@@ -206,7 +206,7 @@ class YuanIndicator(Connector):
                             self.updateTransationData('STOPLOSS_STAGE', 2)
                 else:
                     symbol = self.symbol.replace('/', '')
-                    time = self.getLivePrice()['TIME']
+                    time = list(self.mongo._livePriceConn().find({'SYMBOL': symbol}).sort('TIME', -1).limit(1))[0]['TIME']
                     self.mongo._transactionConn().update_one({'API_KEY': self.api_key, 'SYMBOL': symbol, 'IS_CLOSE': 0}, {'$set': {'TIME': time, 'CLOSE_PRICE': price, 'IS_CLOSE': 1}})
                     self.discord.sendMessage(f'**{self.symbol}** {self.name} Close Position, Price: {price}')
                     self.exchange.cancel_all_orders(self.symbol)
