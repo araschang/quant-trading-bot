@@ -23,7 +23,6 @@ def detect_signal(member):
     except Exception as e:
         logging.error('An error occurred in BTCHedge signalGenerator: %s', e, exc_info=True)
         print(e)
-    print('DETECT BTC HEDGE SIGNAL DONE')
 
 scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 scheduler.start()

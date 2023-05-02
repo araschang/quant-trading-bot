@@ -40,3 +40,7 @@ class MongoDBService(object):
     def _lastSignal(self):
         db = self.client['quant']
         return db['last_signal']
+
+    def _leverageConn(self):
+        db = self.client['quant']
+        return db['leverage']

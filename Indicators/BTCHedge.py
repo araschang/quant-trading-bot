@@ -74,10 +74,14 @@ class BTCHedge(Connector):
             per_order = self.order_qty / 6
             for i in range(3):
                 amount = round(per_order / up_price_lst[i], 3)
+                leverage = self.mongo._leverageConn().find_one({'SYMBOL': up_lst[i], 'EXCHANGE': 'BINANCE'})['MAX_LEVERAGE']
+                exchange.set_leverage(leverage, up_lst[i])
                 exchange.create_market_order(up_lst[i], 'buy', amount)
                 self.mongo._transactionConn().insert_one({'API_KEY': self.api_key, 'STRATEGY': 'BTCHedge', 'SYMBOL': up_lst[i], 'AMOUNT': amount, 'PRICE': up_price_lst[i], 'SIDE': 'BUY', 'IS_CLOSE': 0, 'TIME': time})
             for i in range(3):
                 amount = round(per_order / down_price_lst[i], 3)
+                leverage = self.mongo._leverageConn().find_one({'SYMBOL': up_lst[i], 'EXCHANGE': 'BINANCE'})['MAX_LEVERAGE']
+                exchange.set_leverage(leverage, up_lst[i])
                 exchange.create_market_order(down_lst[i], 'sell', amount)
                 self.mongo._transactionConn().insert_one({'API_KEY': self.api_key, 'STRATEGY': 'BTCHedge', 'SYMBOL': down_lst[i], 'AMOUNT': amount, 'PRICE': down_price_lst[i], 'SIDE': 'SELL', 'IS_CLOSE': 0, 'TIME': time})
 

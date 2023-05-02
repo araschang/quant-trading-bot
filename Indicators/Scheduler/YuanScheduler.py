@@ -52,7 +52,6 @@ def detect_signal(member):
                     except Exception as e:
                         logging.error('An error occurred in YuanIndicator Detect Signal: %s', e, exc_info=True)
                         print(e)
-    print('DETECT SIGNAL IS DONE')
 
 def detect_stoploss(member):
     _transactionConn = mongo._transactionConn()
@@ -63,6 +62,7 @@ def detect_stoploss(member):
         api_secret = member[i]['API_SECRET']
         exchange = member[i]['EXCHANGE']
         strategy = member[i]['STRATEGY']
+        order_qty = member[i]['ORDER_QTY']
         symbol = symbol.replace('/', '')
         position = list(_transactionConn.find({'API_KEY': api_key, 'SYMBOL': symbol, 'STRATEGY': strategy, 'IS_CLOSE': 0}, sort=[('_id', -1)]).limit(1))
         indicator = YuanIndicator(symbol, exchange, api_key, api_secret, strategy)
@@ -75,7 +75,7 @@ def detect_stoploss(member):
         for i in range(len(position_unrealized_info)):
             if position_unrealized_info[i]['info']['symbol'] in hedge_position_symbol:
                 unrealized_sum += float(position_unrealized_info[i]['unRealizedProfit'])
-        if (unrealized_sum < -1 * 5) or (unrealized_sum > 5):
+        if (unrealized_sum < -1 * order_qty * 0.3) or (unrealized_sum > order_qty * 0.5):
             for i in range(len(hedge_position)):
                 if hedge_position[i]['SIDE'] == 'BUY':
                     side = 'sell'
@@ -94,7 +94,6 @@ def detect_stoploss(member):
             except Exception as e:
                 logging.error('An error occurred in YuanIndicator Detect Stop Loss: %s', e, exc_info=True)
                 print(e)
-    print('DETECT STOPLOSS IS DONE')
 
 def check_stoploss(member):
     for i in range(len(member)):
@@ -109,9 +108,8 @@ def check_stoploss(member):
         except Exception as e:
             logging.error('An error occurred in YuanIndicator Check Stop Loss: %s', e, exc_info=True)
             print(e)
-    print('CHECK STOPLOSS IS DONE')
 
-scheduler.add_job(detect_signal, 'interval', seconds=0.5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
+scheduler.add_job(detect_signal, 'interval', seconds=0.3, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 scheduler.add_job(detect_stoploss, 'interval', seconds=1, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 scheduler.add_job(check_stoploss, 'interval', seconds=5, args=[member], next_run_time=datetime.now() + timedelta(seconds=3))
 # scheduler.add_job(job_trend_detect, 'interval', seconds=5, next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
